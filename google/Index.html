@@ -1013,10 +1013,14 @@ const CAMPOS_RESP = ['nivel','ev','om','na','prio','resp','plazo'];
 const SESION_KEY = 'autoeval_sesion_grupo';
 
 function hayGoogle(){ return typeof google !== 'undefined' && google.script && google.script.run; }
+/* si Google no contesta en 25 segundos se avisa, en vez de quedar esperando para siempre */
 function llamar(fn){
   const args = Array.prototype.slice.call(arguments, 1);
   return new Promise((res, rej) => {
-    const run = google.script.run.withSuccessHandler(res).withFailureHandler(rej);
+    const t = setTimeout(() => rej(new Error('TIEMPO')), 25000);
+    const run = google.script.run
+      .withSuccessHandler(v => { clearTimeout(t); res(v); })
+      .withFailureHandler(e => { clearTimeout(t); rej(e); });
     run[fn].apply(run, args);
   });
 }
@@ -1257,7 +1261,8 @@ async function entrar(ev){
     const e = errorDe(err);
     msg.textContent = e.indexOf('SIN_CONFIGURAR') >= 0 ? 'Falta escribir la clave del grupo en el archivo Codigo.gs (línea CLAVE_GRUPO).'
                     : e.indexOf('CLAVE') >= 0 ? 'La clave no es correcta.'
-                    : 'No se pudo conectar. Revise la conexión y pruebe de nuevo.';
+                    : e.indexOf('TIEMPO') >= 0 ? 'Google no responde. Si está en una ventana de incógnito, abra el enlace en una ventana normal: el modo incógnito bloquea las cookies que necesita Google.'
+                    : 'No se pudo conectar (' + e.slice(0, 120) + '). Pruebe de nuevo.';
   }finally{
     btn.disabled = false;
   }
