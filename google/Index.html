@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Autoevaluación de Calidad en Salud</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Playfair+Display:wght@600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Paleta UNCuyo Bordo - Manual de marcas UNCuyo (PMS 7427 C / 2955 C / 465 C) */
+  --blue-deep:#980000; --blue-mid:#9B1609; --blue-sky:#C4452F; --blue-pale:#FFA48E; --blue-tint:#FFEDE8;
+  --uncuyo-azul:#004073; --uncuyo-azul-mid:#2C67AA; --uncuyo-oro:#BFA666;
+  --bg-paper:#F8F5EF; --bg-card:#FFFFFF; --bg-sidebar:#F0EBE1;
+  --ink-dark:#1F1B18; --ink-mid:#6A625A; --ink-light:#9C948A;
+  --accent-amber:#BFA666; --accent-green:#3F6B32; --accent-red:#980000;
+  --rule-heavy:#980000; --rule-light:#DDD5C7; --border-card:#DDD5C7;
+  --grilla:#E9E3D8;
+  box-sizing:border-box;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg-paper);color:var(--ink-dark);font-family:'Source Serif 4',Georgia,serif;font-size:16px;line-height:1.55;margin:0;padding:0}
+.page-wrapper{max-width:1180px;margin:0 auto;padding:0 20px}
+.masthead{background:#980000;color:#fff;padding:18px 0;border-bottom:4px solid var(--accent-amber);position:sticky;top:env(safe-area-inset-top,0px);z-index:40}
+.masthead h1{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin:0 0 3px;letter-spacing:-.02em;color:#fff}
+.masthead .subtitle{font-family:'IBM Plex Sans',sans-serif;font-size:.72rem;opacity:.85;letter-spacing:.06em;text-transform:uppercase;margin:0;color:#fff}
+.masthead-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.score-chip{font-family:'IBM Plex Mono',monospace;font-size:.95rem;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);padding:6px 12px;border-radius:2px;white-space:nowrap}
+.score-chip b{font-size:1.25rem}
+.tab-bar{display:flex;border-bottom:2px solid var(--rule-heavy);margin:18px 0 20px;flex-wrap:wrap;overflow-x:auto}
+.tab{font-family:'IBM Plex Sans',sans-serif;font-size:.8rem;font-weight:600;padding:9px 14px;cursor:pointer;border:none;border-bottom:3px solid transparent;color:var(--ink-mid);background:none;margin-bottom:-2px;white-space:nowrap}
+.tab:hover{color:var(--blue-mid)}
+.tab.active{color:var(--blue-deep);border-bottom-color:var(--accent-amber)}
+.tab .tab-pts{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--ink-light);margin-left:10px}
+.section-header{border-top:2px solid var(--rule-heavy);padding-top:9px;margin:26px 0 14px}
+.section-header .eyebrow{font-family:'IBM Plex Sans',sans-serif;font-size:.68rem;font-weight:600;color:var(--uncuyo-azul);text-transform:uppercase;letter-spacing:.08em;margin:0 0 3px}
+.section-header h2{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--blue-deep);margin:0}
+.card{background:var(--bg-card);border:1px solid var(--border-card);border-top:3px solid var(--blue-deep);border-radius:2px;padding:18px 20px;margin-bottom:18px}
+.card-title{font-family:'IBM Plex Sans',sans-serif;font-size:.68rem;font-weight:600;color:var(--blue-mid);text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid var(--rule-light)}
+.kpi-value{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;color:var(--blue-deep);line-height:1}
+.kpi-label{font-family:'IBM Plex Sans',sans-serif;font-size:.75rem;color:var(--ink-mid);margin-top:4px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:820px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-family:'IBM Plex Sans',sans-serif;font-size:.8rem}
+th{text-align:left;font-weight:600;color:var(--blue-deep);border-bottom:1px solid var(--rule-heavy);padding:7px 8px;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em}
+td{padding:7px 8px;border-bottom:1px solid var(--rule-light);vertical-align:top}
+td.num,th.num{text-align:right;font-family:'IBM Plex Mono',monospace}
+tr.fila-criterio td{background:var(--blue-tint);font-weight:600}
+.tbl-wrap{overflow-x:auto}
+.factor-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule-light);flex-wrap:wrap}
+.factor-head h3{font-family:'IBM Plex Sans',sans-serif;font-size:.86rem;font-weight:600;color:var(--blue-deep);margin:0;text-transform:uppercase;letter-spacing:.04em}
+.factor-pts{font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--ink-mid)}
+.factor-max{font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:.76rem;color:var(--ink-light);text-transform:none;letter-spacing:0;margin-left:8px}
+.preg{border:1px solid var(--border-card);border-left:3px solid var(--blue-sky);background:var(--bg-card);padding:14px 16px;margin-bottom:14px;border-radius:2px}
+.preg.na{opacity:.55;border-left-color:var(--ink-light)}
+.preg-top{display:flex;gap:12px;align-items:flex-start}
+.preg-n{font-family:'IBM Plex Mono',monospace;font-size:1rem;font-weight:600;color:var(--blue-mid);min-width:28px}
+.preg-txt{flex:1;font-size:.97rem}
+.preg-peso{font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--ink-mid);white-space:nowrap;padding-left:6px}
+.refs{font-family:'IBM Plex Sans',sans-serif;font-size:.67rem;color:var(--ink-light);margin:6px 0 0 40px;letter-spacing:.02em}
+.niveles{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:12px 0 4px}
+@media (max-width:820px){.niveles{grid-template-columns:1fr 1fr}}
+.nivel{border:1px solid var(--rule-light);border-radius:2px;padding:7px 8px;cursor:pointer;background:var(--bg-paper);font-family:'IBM Plex Sans',sans-serif;font-size:.7rem;line-height:1.3;color:var(--ink-mid);display:block}
+.nivel:hover{border-color:var(--blue-sky)}
+.nivel input{margin-right:5px}
+.nivel .nv-nom{font-weight:600;color:var(--ink-dark);display:block;margin-bottom:2px}
+.nivel .nv-pts{font-family:'IBM Plex Mono',monospace;color:var(--blue-mid);font-size:.68rem;display:block;margin-top:4px}
+.nivel.sel{background:var(--blue-tint);border-color:var(--blue-mid);box-shadow:inset 0 0 0 1px var(--blue-mid)}
+.campos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+@media (max-width:820px){.campos{grid-template-columns:1fr}}
+label.campo-lbl{font-family:'IBM Plex Sans',sans-serif;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--uncuyo-azul);display:block;margin-bottom:4px}
+textarea,input[type=text],input[type=date],select{width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:.84rem;color:var(--ink-dark);background:var(--bg-card);border:1px solid var(--rule-light);border-radius:2px;padding:7px 9px;line-height:1.45}
+textarea{resize:vertical;min-height:62px;overflow:hidden}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--blue-sky);border-color:var(--blue-mid)}
+.preg-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.chk-na{font-family:'IBM Plex Sans',sans-serif;font-size:.74rem;color:var(--ink-mid)}
+.puntaje-preg{font-family:'IBM Plex Mono',monospace;font-size:.85rem;color:var(--blue-deep);font-weight:600}
+.btn{font-family:'IBM Plex Sans',sans-serif;font-size:.78rem;font-weight:600;padding:8px 14px;border:1px solid var(--blue-mid);background:var(--blue-mid);color:#fff;border-radius:2px;cursor:pointer}
+.btn:hover{background:var(--blue-deep);border-color:var(--blue-deep)}
+.btn.ghost{background:transparent;color:var(--blue-mid)}
+.btn.ghost:hover{background:var(--blue-tint);color:var(--blue-deep)}
+.btn.danger{border-color:var(--accent-red);background:transparent;color:var(--accent-red)}
+.btn.danger:hover{background:var(--accent-red);color:#fff}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.badge{font-family:'IBM Plex Sans',sans-serif;font-size:.67rem;font-weight:600;padding:2px 7px;border-radius:2px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.b-n0{background:#FFEDE8;color:#7E0D03}.b-n1{background:#FBDFD0;color:#8A3F16}
+.b-n2{background:#F6ECD6;color:#7A5208}.b-n3{background:#EBF1FE;color:#1B3F69}
+.b-n4{background:#E7F0E2;color:#3F6B32}
+.barra{height:7px;background:var(--rule-light);border-radius:1px;overflow:hidden;min-width:70px}
+.barra span{display:block;height:100%;background:var(--blue-mid)}
+.nota{font-family:'IBM Plex Sans',sans-serif;font-size:.78rem;color:var(--ink-mid);background:var(--blue-tint);border-left:3px solid var(--blue-sky);padding:10px 12px;margin:12px 0}
+.footnote{font-family:'IBM Plex Sans',sans-serif;font-size:.73rem;color:var(--ink-light);border-top:1px solid var(--rule-light);padding-top:8px;margin-top:26px}
+/* obligatorios y control de completitud */
+.req{color:#980000;font-weight:700;margin-left:3px}
+textarea.falta,input.falta{border-color:#980000;background:#FFF7F4;box-shadow:inset 0 0 0 1px #980000}
+.preg.falta-nivel{border-left-color:#980000}
+.preg.falta-nivel .niveles{outline:1px solid #980000;outline-offset:3px;border-radius:2px}
+.aviso-falta{font-family:'IBM Plex Sans',sans-serif;font-size:.7rem;color:#980000;margin-top:5px;display:none}
+.preg.falta-nivel .aviso-falta{display:block}
+.pendientes{font-family:'IBM Plex Sans',sans-serif;font-size:.74rem;font-weight:600;padding:4px 10px;border-radius:2px;background:#FFEDE8;color:#7E0D03}
+.pendientes.ok{background:#E7F0E2;color:#3F6B32}
+.tool-sep{width:1px;align-self:stretch;background:var(--rule-light);margin:0 4px}
+.print-value,.estado-print,.panel-print-head,.chart-print{display:none}
+
+.avance-wrap{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Sans',sans-serif;font-size:.72rem;color:var(--ink-mid)}
+.chart-box{position:relative;height:420px}
+.chart-box.short{height:280px}
+.chart-box.crit{height:340px}
+.perfil-criterio{margin-bottom:22px}
+.perfil-pie{font-family:'IBM Plex Sans',sans-serif;font-size:.76rem;color:var(--ink-mid);margin:8px 0 0;
+  border-top:1px solid var(--rule-light);padding-top:8px}
+.perfil-pie b{font-family:'IBM Plex Mono',monospace;color:var(--blue-deep)}
+.print-only{display:none}
+.guia dl{margin:0}
+.guia dt{font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:.8rem;color:var(--blue-deep);margin-top:10px}
+.guia dd{margin:2px 0 0;font-size:.9rem}
+@media print{
+  @page{size:A4 portrait;margin:15mm 13mm 14mm}
+  :root{
+    --bg-paper:#fff; --bg-card:#fff;
+    --ink-dark:#1F1B18; --ink-mid:#4E473F; --ink-light:#6E655B;
+    --blue-deep:#980000; --blue-mid:#9B1609; --uncuyo-azul:#004073;
+    --rule-light:#BEB4A2; --border-card:#BEB4A2; --blue-tint:#F1ECE2; --grilla:#DED6C6;
+  }
+  html,body{background:#fff !important}
+  body{font-size:9.8pt;line-height:1.38;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page-wrapper{max-width:none;margin:0;padding:0}
+  .no-print,.tab-bar,.toolbar,.masthead,.avance-wrap,.score-chip,.aviso-falta{display:none !important}
+  .print-only{display:block}
+
+  /* --- una seccion por pagina, o solo la seccion elegida --- */
+  .panel{display:block !important;break-before:page}
+  .panel.pr-primera{break-before:avoid}
+  .panel.pr-primera > .panel-print-head{display:none}
+  body.pr-seccion .panel{display:none !important}
+  body.pr-seccion .panel.pr-esta{display:block !important;break-before:avoid}
+  .panel-print-head{display:block;font-family:'IBM Plex Sans',sans-serif;font-size:7.4pt;
+    letter-spacing:.05em;text-transform:uppercase;color:#6E655B;
+    border-bottom:.6pt solid #BEB4A2;padding-bottom:3pt;margin-bottom:10pt}
+
+  /* --- control de cortes --- */
+  h1,h2,h3,.section-header,.factor-head,.card-title,label.campo-lbl{break-after:avoid}
+  .preg,.factor-head,.nota,.chart-box,.perfil-criterio,tr{break-inside:avoid}
+  .perfil-pie{font-size:8.2pt;padding-top:5pt;margin-top:6pt}
+  .grid-4 .card{break-inside:avoid}
+  p,dd,td,.print-value{orphans:3;widows:3}
+
+  /* --- campos: se imprime el texto, no la caja --- */
+  textarea,input[type=text],input[type=date],select{display:none !important}
+  .print-value{display:block;font-family:'IBM Plex Sans',sans-serif;font-size:8.9pt;line-height:1.34;
+    color:#1F1B18;white-space:pre-wrap;border-bottom:.5pt solid #D3CABA;padding:1pt 0 3pt;min-height:10pt}
+  .print-value.vacio{color:#A39A8E;min-height:20pt}
+  td .print-value,th .print-value{border:none;font-size:8.2pt;padding:0;min-height:0}
+  label.campo-lbl{font-size:7.3pt;margin-bottom:2pt;color:#004073}
+  .campos{display:grid;grid-template-columns:1fr 1fr;gap:10pt}
+  .req{display:none}
+
+  /* --- preguntas --- */
+  .preg{border:.5pt solid #C9C0B0;border-left:2pt solid #980000;padding:7pt 9pt;margin-bottom:8pt;opacity:1 !important}
+  .preg-top{gap:7pt}
+  .preg-n{font-size:9.5pt;min-width:18pt}
+  .preg-txt{font-size:9.4pt}
+  .preg-peso{font-size:8.2pt}
+  .refs{font-size:7.1pt;margin:3pt 0 0 25pt;color:#6E655B}
+  .preg-foot{margin-top:5pt}
+  .chk-na{display:none}
+  .puntaje-preg{font-size:8.4pt}
+  .estado-print{display:block;font-family:'IBM Plex Sans',sans-serif;font-size:8.3pt;font-weight:600;
+    color:#980000;margin:4pt 0 0}
+  .estado-print:empty{display:none}
+
+  /* --- niveles: solo el elegido --- */
+  .niveles{display:block;margin:6pt 0 4pt;outline:none !important}
+  .nivel{display:none}
+  .nivel.sel{display:block;background:#F3EDE2;border:.5pt solid #BEB4A2;
+    padding:4pt 7pt;font-size:8.3pt;box-shadow:none}
+  .nivel input{display:none}
+  .nivel .nv-nom{display:inline;margin:0}
+  .nivel.sel .nv-nom::after{content:' · '}
+  .preg:not(.respondida) .nivel{display:block;background:none;border:none;
+    border-bottom:.4pt dotted #C9C0B0;padding:2pt 0 2pt 12pt;font-size:7.8pt;position:relative}
+  .preg:not(.respondida) .nivel::before{content:'';position:absolute;left:0;top:3pt;
+    width:6pt;height:6pt;border:.5pt solid #8E857A}
+  .preg:not(.respondida) .nivel .nv-nom::after{content:' · '}
+  .nivel .nv-pts{display:inline;margin-left:6pt}
+
+  /* --- tablas --- */
+  table{font-size:8.1pt}
+  thead{display:table-header-group}
+  th{font-size:6.9pt;padding:3pt 4pt;border-bottom:.8pt solid #980000}
+  td{padding:2.5pt 4pt;border-bottom:.4pt solid #D3CABA}
+  .tbl-wrap{overflow:visible !important;max-height:none !important}
+  .badge{border:.4pt solid rgba(0,0,0,.16);font-size:6.6pt}
+  #p-om table{table-layout:fixed;width:100%}
+  #p-om th:nth-child(1),#p-om td:nth-child(1){width:4% !important}
+  #p-om th:nth-child(2),#p-om td:nth-child(2){width:16% !important}
+  #p-om th:nth-child(3),#p-om td:nth-child(3){width:40% !important}
+  #p-om th:nth-child(4),#p-om td:nth-child(4){width:8% !important}
+  #p-om th:nth-child(5),#p-om td:nth-child(5){width:10% !important}
+  #p-om th:nth-child(6),#p-om td:nth-child(6){width:12% !important}
+  #p-om th:nth-child(7),#p-om td:nth-child(7){width:10% !important}
+  #p-om td{vertical-align:top;font-size:7.8pt}
+
+  /* --- grillas y tarjetas --- */
+  .grid-3{grid-template-columns:1fr !important;gap:10pt}
+  .grid-2{gap:10pt}
+  #p-resumen .grid-2{grid-template-columns:1fr !important}
+  .grid-4{grid-template-columns:repeat(4,1fr) !important;gap:7pt}
+  .card{padding:9pt 11pt;margin-bottom:10pt;border:.5pt solid #C9C0B0;border-top:1.5pt solid #980000}
+  .card-title{font-size:6.9pt;margin-bottom:7pt;padding-bottom:4pt}
+  .kpi-value{font-size:18pt}
+  .kpi-label{font-size:7.4pt}
+  .section-header{margin:0 0 10pt;border-top:1.5pt solid #980000;padding-top:5pt}
+  .section-header h2{font-size:13pt}
+  .section-header .eyebrow{font-size:7.2pt}
+  .factor-head{margin:11pt 0 6pt;padding-bottom:4pt}
+  .factor-head h3{font-size:8.6pt}
+  .factor-max,.factor-pts{font-size:7.6pt}
+  .nota{font-size:8.2pt;padding:6pt 8pt;margin:8pt 0}
+  .guia dt{font-size:8.4pt;margin-top:7pt}
+  .guia dd{font-size:8.8pt}
+  .footnote{font-size:7.1pt;margin-top:12pt;padding-top:5pt}
+
+  /* --- graficos --- */
+  .chart-box,.chart-box.crit,.chart-box.short{height:auto !important;position:static;break-inside:avoid}
+  canvas{display:none !important}
+  .chart-print{display:block;width:88%;height:auto;max-height:125mm;object-fit:contain;margin:0 auto}
+  .chart-box.short .chart-print{width:100%;max-height:78mm}
+  .chart-box.crit .chart-print{width:74%;max-height:92mm}
+}
+
+/* sincronización con el grupo y diálogos propios (el visor no muestra alert ni confirm) */
+.sync{font-family:'IBM Plex Sans',sans-serif;font-size:.72rem;color:var(--ink-mid);display:inline-flex;align-items:center;gap:6px}
+.sync::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--ink-light)}
+.sync.ok::before{background:var(--accent-green)}
+.sync.trabajando::before{background:var(--accent-amber)}
+.sync.error::before{background:var(--accent-red)}
+.banda-lectura{font-family:'IBM Plex Sans',sans-serif;font-size:.8rem;background:#F6ECD6;color:#7A5208;border-left:3px solid var(--accent-amber);padding:10px 12px;margin:0 0 16px}
+.dlg-fondo{position:fixed;inset:0;background:rgba(31,27,24,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:100}
+.dlg{background:var(--bg-card);border-top:4px solid var(--blue-deep);max-width:460px;width:100%;padding:20px 22px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.dlg p{margin:0 0 16px;font-size:.95rem;white-space:pre-line}
+.dlg .toolbar{justify-content:flex-end;margin:0}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.presentes{font-family:'IBM Plex Sans',sans-serif;font-size:.72rem;color:var(--ink-mid);display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pres-chip{color:#fff;font-weight:600;padding:2px 8px;border-radius:10px;font-size:.68rem}
+.pres-tag{display:inline-block;color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:.64rem;font-weight:600;padding:1px 7px;border-radius:2px 2px 0 0}
+.pres-campo{outline:2px solid var(--pres, #2C67AA);outline-offset:1px}
+.link-btn{font:inherit;background:none;border:none;padding:0;color:var(--blue-mid);text-decoration:underline;cursor:pointer}
+.acceso .dlg label.campo-lbl{margin-top:10px}
+.acceso .dlg h2{font-family:'Playfair Display',serif;color:var(--blue-deep);font-size:1.2rem;margin:0 0 6px}
+.acceso-msg{font-family:'IBM Plex Sans',sans-serif;font-size:.78rem;color:#980000;min-height:1.2em;margin:10px 0 12px}
+@media print{.dlg-fondo,.presentes,.pres-tag{display:none !important}.pres-campo{outline:none}}
+</style>
+</head>
+<body>
+<div class="dlg-fondo acceso no-print" id="acceso" hidden>
+  <form class="dlg" autocomplete="on">
+    <h2>Entrar al tablero del grupo</h2>
+    <p style="margin:0;font-size:.9rem">Escriba su nombre, para que las demás vean quién está cargando cada parte, y la clave que les pasó quien creó el tablero.</p>
+    <label class="campo-lbl" for="accesoNombre">Su nombre</label>
+    <input type="text" id="accesoNombre" maxlength="40" placeholder="Por ejemplo, Sofía">
+    <label class="campo-lbl" for="accesoClave">Clave del grupo</label>
+    <input type="text" id="accesoClave" autocomplete="off">
+    <p class="acceso-msg" id="accesoMsg" role="alert"></p>
+    <div class="toolbar"><button class="btn" id="accesoBtn" type="submit">Entrar</button></div>
+  </form>
+</div>
+
+<header class="masthead no-print">
+  <div class="page-wrapper masthead-row">
+    <div>
+      <p class="subtitle">Micromaestría en Gestión de Salud · FCE UNCuyo</p>
+      <h1>Autoevaluación de la gestión de calidad en organizaciones de salud</h1>
+    </div>
+    <div class="score-chip">Puntaje <b id="chipPuntaje">0</b> / <span id="chipBase">1000</span> · <span id="chipPct">0%</span></div>
+  </div>
+</header>
+
+<div class="print-only" style="border-bottom:2px solid #980000;padding-bottom:6px;margin-bottom:10px">
+  <div style="font-family:'IBM Plex Sans',sans-serif;font-size:8pt;letter-spacing:.06em;text-transform:uppercase;color:#004073">Micromaestría en Gestión de Salud · FCE UNCuyo</div>
+  <div style="font-family:'Playfair Display',serif;font-size:15pt;font-weight:700;color:#980000">Informe de autoevaluación de la gestión de calidad</div>
+  <div id="printCabecera" style="font-family:'IBM Plex Sans',sans-serif;font-size:9pt;color:#5A534B"></div>
+</div>
+
+<div class="page-wrapper" style="padding-bottom:40px">
+
+  <div class="tab-bar no-print" id="tabBar"></div>
+
+  <div class="toolbar no-print" style="margin-bottom:16px">
+    <button class="btn" onclick="imprimir('seccion')">Imprimir esta sección</button>
+    <button class="btn" onclick="imprimir('todo')">Imprimir todo el documento</button>
+    <span class="tool-sep"></span>
+    <button class="btn ghost" onclick="exportarExcel()">Exportar a Excel</button>
+    <button class="btn ghost" onclick="guardarCopia()">Guardar copia de respaldo</button>
+    <button class="btn ghost" id="btnAbrirCopia" onclick="document.getElementById('fileCopia').click()">Abrir copia de respaldo</button>
+    <input type="file" id="fileCopia" class="no-print" accept="application/json" style="display:none" onchange="abrirCopia(this)">
+    <span class="tool-sep"></span>
+    <button class="btn ghost" onclick="verificar()">Verificar completitud</button>
+    <button class="btn danger" id="btnBorrar" onclick="limpiar()">Borrar todo</button>
+  </div>
+  <div class="toolbar no-print" style="margin-bottom:18px">
+    <span class="avance-wrap">Avance <span class="barra" style="width:120px"><span id="barraAvance" style="width:0%"></span></span> <span id="txtAvance">0 de 45</span></span>
+    <span class="pendientes" id="pendientes">sin verificar</span>
+    <span class="avance-wrap"><span id="quienSoy"></span><button class="link-btn" type="button" onclick="cambiarNombre()">cambiar nombre</button></span>
+    <span id="estadoSync" class="sync" role="status">conectando con el grupo…</span>
+    <span id="presentes" class="presentes"></span>
+    <span id="estadoGuardado" class="avance-wrap"></span>
+  </div>
+
+  <!-- PANEL: carátula -->
+  <section class="panel" id="p-caratula">
+    <div class="section-header"><p class="eyebrow">Paso 1</p><h2>Identificación de la organización y del equipo</h2></div>
+    <div class="card">
+      <div class="grid-2">
+        <div><label class="campo-lbl">Organización evaluada<span class="req">*</span></label><input type="text" id="org_nombre" required aria-required="true" placeholder="Hospital, centro de salud, obra social, dirección, programa"></div>
+        <div><label class="campo-lbl">Tipo y dependencia<span class="req">*</span></label><input type="text" id="org_tipo" required aria-required="true" placeholder="Público provincial, municipal, privado, seguridad social"></div>
+        <div><label class="campo-lbl">Jurisdicción o localidad<span class="req">*</span></label><input type="text" id="org_juris" required aria-required="true" placeholder="Mendoza"></div>
+        <div><label class="campo-lbl">Período evaluado<span class="req">*</span></label><input type="text" id="org_periodo" required aria-required="true" placeholder="Año 2026"></div>
+        <div><label class="campo-lbl">Fecha de la autoevaluación<span class="req">*</span></label><input type="date" id="org_fecha" required aria-required="true"></div>
+        <div><label class="campo-lbl">Responsable de la conducción del ejercicio<span class="req">*</span></label><input type="text" id="org_resp" required aria-required="true" placeholder="Nombre y cargo"></div>
+      </div>
+      <div style="margin-top:12px"><label class="campo-lbl">Integrantes del equipo evaluador<span class="req">*</span></label><textarea id="org_equipo" required aria-required="true" placeholder="Nombre, área y rol de cada integrante"></textarea></div>
+      <div style="margin-top:12px"><label class="campo-lbl">Descripción breve de la organización<span class="req">*</span></label><textarea id="org_desc" required aria-required="true" placeholder="Misión, población a cargo, cartera de servicios, dotación, volumen de prestaciones, marco normativo"></textarea></div>
+      <div style="margin-top:12px"><label class="campo-lbl">Alcance del ejercicio<span class="req">*</span></label><textarea id="org_alcance" required aria-required="true" placeholder="Qué servicios, procesos o sedes quedan comprendidos y cuáles se excluyen, y por qué"></textarea></div>
+    </div>
+    <div class="nota">Los campos marcados con asterisco son obligatorios: sin ellos el informe no queda completo. El puntaje sin evidencia no tiene valor. Cada respuesta debe apoyarse en documentos, registros o mediciones que se puedan exhibir. Si una pregunta no aplica a la organización, marque la casilla correspondiente y explique el motivo en el campo de evidencias: su peso se descuenta de la base de cálculo y el porcentaje se recalcula sobre los puntos que sí aplican.</div>
+    <div class="nota" id="notaGuardado">Lo que carga cada integrante se guarda solo en la planilla del grupo y aparece en la pantalla de las demás en dos o tres segundos. Arriba se ve quién está conectada, y cada campo en el que otra persona está escribiendo aparece marcado con su nombre. Si dos escriben a la vez en el mismo campo queda la última versión, así que conviene no pisarse. La copia de respaldo descarga un archivo con todo lo cargado, y abrir una copia la vuelca en la planilla del grupo.</div>
+  </section>
+
+  <!-- PANEL: guía -->
+  <section class="panel guia" id="p-guia" style="display:none">
+    <div class="section-header"><p class="eyebrow">Cómo se usa</p><h2>Guía de puntuación y criterios de clasificación</h2></div>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-title">Escala para criterios de enfoque y despliegue (criterios 1 a 6)</p>
+        <dl id="guiaEnfoque"></dl>
+      </div>
+      <div class="card">
+        <p class="card-title">Escala para el criterio de resultados (criterio 7)</p>
+        <dl id="guiaResultados"></dl>
+      </div>
+    </div>
+    <div class="card">
+      <p class="card-title">Reglas de puntuación</p>
+      <p>Cada pregunta tiene un peso en puntos. El nivel elegido asigna 0 %, 20 %, 50 %, 80 % o 100 % de ese peso. Es la misma proporción que usaba el formulario original de la Fundación Premio Nacional a la Calidad, ahora aplicada de manera uniforme a las 45 preguntas: en la planilla de 2009 varias filas tenían redondeos que rompían la escala.</p>
+      <p>El total del cuestionario es de 1.000 puntos, repartidos en tres componentes: liderazgo 120, sistema de gestión 440 y resultados 440.</p>
+      <p>La clasificación agregada de cada factor y de cada criterio se obtiene del porcentaje alcanzado, con estos cortes: menos de 10 % no implementada, de 10 a 34 % implementación en desarrollo, de 35 a 64 % implementación parcial, de 65 a 89 % implementación total y 90 % o más nivel de excelencia.</p>
+      <p>La telaraña compara, para cada criterio y cada factor, el porcentaje alcanzado contra el 100 % de excelencia. La distancia entre ambas líneas es la oportunidad de mejora.</p>
+      <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Puntaje total</th><th>Posición de la organización</th></tr></thead><tbody id="tblBandas"></tbody></table></div>
+    </div>
+    <div class="card">
+      <p class="card-title">Qué se actualizó respecto del formulario original</p>
+      <p>El cuestionario de 2009 fue escrito para una obra social y hablaba de afiliados, agencias y delegaciones. Esta versión conserva la arquitectura completa (tres componentes, siete criterios, veintiséis factores, cuarenta y cinco preguntas, mil puntos, escala de cinco niveles, telaraña) y actualiza el contenido de las preguntas a los marcos vigentes: ISO 7101:2023 de sistemas de gestión de la calidad para organizaciones de salud, el marco Baldrige para el sector salud, el modelo EFQM 2025 con su lógica REDER, ISO 9001:2015 e ISO 31000 en materia de riesgos, y las dimensiones de calidad de la Organización Mundial de la Salud: atención efectiva, segura, centrada en las personas, oportuna, equitativa, integrada y eficiente.</p>
+      <p>Los cambios de fondo son cinco. La seguridad del paciente pasa a ser materia evaluable dentro del criterio de procesos, con notificación de eventos y cultura justa. El enfoque en el cliente se reformula como atención centrada en la persona, con equidad de acceso y participación de usuarios y familias. La cadena de distribución, que en el original eran agencias y delegaciones, se reemplaza por la integración en red y la continuidad del cuidado entre niveles. La gestión de la información incorpora historia clínica electrónica, interoperabilidad, resguardo y protección de datos personales. La responsabilidad social suma la dimensión ambiental propia del sector, con residuos patogénicos y consumo energético, y la continuidad operativa ante emergencias.</p>
+      <p>Cada pregunta indica al pie el marco de referencia con el que se corresponde, para que el equipo pueda ampliar la consulta.</p>
+    </div>
+  </section>
+
+  <!-- paneles de criterios: generados por script -->
+  <div id="panelesCriterios"></div>
+
+  <!-- PANEL: resultados -->
+  <section class="panel" id="p-resumen" style="display:none">
+    <div class="section-header"><p class="eyebrow">Paso 3</p><h2>Resultado de la autoevaluación</h2></div>
+    <div class="grid-4">
+      <div class="card"><p class="card-title">Puntaje total</p><p class="kpi-value" id="kTotal">0</p><p class="kpi-label">sobre <span id="kBase">1000</span> puntos aplicables</p></div>
+      <div class="card"><p class="card-title">Excelencia alcanzada</p><p class="kpi-value" id="kPct">0%</p><p class="kpi-label" id="kBanda">Sin datos cargados</p></div>
+      <div class="card"><p class="card-title">Oportunidad de mejora</p><p class="kpi-value" id="kBrecha">0</p><p class="kpi-label">puntos disponibles</p></div>
+      <div class="card"><p class="card-title">Preguntas respondidas</p><p class="kpi-value" id="kResp">0</p><p class="kpi-label" id="kNA">sobre 45</p></div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">Telaraña de la organización</p>
+      <div class="toolbar no-print" style="margin-bottom:10px">
+        <button class="btn ghost" id="btnRadarCrit" onclick="setNivelRadar('criterio')">Por criterio</button>
+        <button class="btn ghost" id="btnRadarFact" onclick="setNivelRadar('factor')">Por factor</button>
+      </div>
+      <div class="chart-box"><canvas id="radar"></canvas></div>
+      <p class="footnote" style="border:none;margin-top:4px">La línea exterior marca el 100 % de excelencia. El área sombreada es el desempeño declarado. La superficie entre ambas es la brecha a trabajar.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-title">Puntos alcanzados y brecha por criterio</p>
+        <div class="chart-box short"><canvas id="barras"></canvas></div>
+      </div>
+      <div class="card">
+        <p class="card-title">Grado de implementación por factor y criterio</p>
+        <div class="tbl-wrap" style="max-height:340px;overflow-y:auto"><table><thead><tr><th>Componente, criterio y factor</th><th class="num">Puntos</th><th class="num">Máximo</th><th class="num">%</th><th>Grado</th></tr></thead><tbody id="tblGrado"></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">Lectura del resultado</p>
+      <div id="lectura"></div>
+      <div style="margin-top:12px"><label class="campo-lbl">Conclusiones del equipo evaluador<span class="req">*</span></label><textarea id="org_conclusiones" required aria-required="true" placeholder="Fortalezas confirmadas con evidencia, debilidades sistémicas, decisión sobre qué se lleva al plan de mejoras"></textarea></div>
+    </div>
+  </section>
+
+  <!-- PANEL: oportunidades -->
+  <section class="panel" id="p-om" style="display:none">
+    <div class="section-header"><p class="eyebrow">Paso 4</p><h2>Oportunidades de mejora priorizadas</h2></div>
+    <div class="nota">La tabla reúne todas las oportunidades de mejora escritas en los criterios. Se ordena por impacto, que son los puntos que la organización deja sobre la mesa en cada pregunta. Asigne prioridad, responsable y plazo para transformar el ejercicio en un plan de trabajo.</div>
+    <div class="card">
+      <div class="tbl-wrap"><table><thead><tr><th style="width:42px">N°</th><th style="width:150px">Criterio y factor</th><th>Oportunidad de mejora</th><th class="num" style="width:74px">Impacto</th><th style="width:110px">Prioridad</th><th style="width:150px">Responsable</th><th style="width:110px">Plazo</th></tr></thead><tbody id="tblOM"></tbody></table></div>
+      <p class="footnote" style="border:none" id="omVacio"></p>
+    </div>
+  </section>
+
+  <p class="footnote">Modelo de autoevaluación de la gestión de calidad para organizaciones de salud, versión 2026. Adaptación del formulario de la Fundación Premio Nacional a la Calidad, Ley N° 24.127, actualizada con ISO 7101:2023, marco Baldrige para salud, EFQM 2025 y las dimensiones de calidad de la Organización Mundial de la Salud. <span id="pieDatos">Las respuestas se guardan en una planilla de Google Drive de quien creó el tablero, y solo entra quien tiene la clave del grupo.</span></p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const FACTORES_NIVEL = [0, 0.20, 0.50, 0.80, 1.00];
+
+const NIVELES_ENFOQUE = [
+  {nom:'No implementada', desc:'No hay práctica definida ni registros'},
+  {nom:'En desarrollo', desc:'Práctica definida o en prueba, sin despliegue efectivo'},
+  {nom:'Implementación parcial', desc:'Desplegada en algunas áreas, sin evaluación sistemática'},
+  {nom:'Implementación total', desc:'Desplegada en toda la organización y evaluada con datos'},
+  {nom:'Nivel de excelencia', desc:'Además se revisa, se compara con referentes externos y se mejora'}
+];
+const NIVELES_RESULTADOS = [
+  {nom:'Sin información', desc:'No se mide o no hay registros disponibles'},
+  {nom:'Datos incipientes', desc:'Mediciones aisladas, sin serie ni metas'},
+  {nom:'Serie sin tendencia clara', desc:'Al menos tres años de datos, desempeño irregular'},
+  {nom:'Tendencia favorable sostenida', desc:'Mejora sostenida y metas internas alcanzadas'},
+  {nom:'Nivel de referencia', desc:'Buenos niveles sostenidos y comparados con referentes externos'}
+];
+
+const BANDAS = [
+  {min:0,   max:250,  txt:'Inicio del camino. Prácticas aisladas, sin sistema de gestión.'},
+  {min:251, max:450,  txt:'Enfoque en desarrollo. Hay prácticas definidas pero el despliegue es desparejo.'},
+  {min:451, max:650,  txt:'Sistema de gestión en consolidación. Prácticas desplegadas y primeras mediciones.'},
+  {min:651, max:850,  txt:'Madurez. Sistema desplegado, evaluado y con resultados sostenidos.'},
+  {min:851, max:1000, txt:'Nivel de excelencia. Desempeño comparado con referentes y mejora continua instalada.'}
+];
+const GRADOS = [
+  {min:90, nom:'Nivel de excelencia', cls:'b-n4'},
+  {min:65, nom:'Implementación total', cls:'b-n3'},
+  {min:35, nom:'Implementación parcial', cls:'b-n2'},
+  {min:10, nom:'Implementación en desarrollo', cls:'b-n1'},
+  {min:0,  nom:'No implementada', cls:'b-n0'}
+];
+
+const MODELO = [
+ {id:'C1', comp:'Componente 1', compNom:'Liderazgo', puntos:120, criterios:[
+  {id:'cr1', num:1, nombre:'Liderazgo y gobernanza', puntos:120, tipo:'enfoque', factores:[
+   {letra:'A', nombre:'Dirección estratégica y cultura de calidad', puntos:70, preguntas:[
+    {n:1, peso:40, texto:'¿La conducción definió y documentó la misión, la visión, los valores y los objetivos de calidad de la organización, alineados con la política sanitaria vigente y con las necesidades de la población a cargo?', ref:'ISO 7101 cláusula 5 · Baldrige 1.1 · EFQM criterios 1 y 2'},
+    {n:2, peso:30, texto:'¿La conducción comunica y despliega esa dirección en todos los niveles, y verifica que el personal la conozca y la aplique en su tarea diaria?', ref:'ISO 7101 cláusula 5.2 · Baldrige 1.1b · EFQM criterio 2'}
+   ]},
+   {letra:'B', nombre:'Compromiso de la conducción y cultura de seguridad', puntos:25, preguntas:[
+    {n:3, peso:25, texto:'¿La conducción participa personalmente en la gestión de la calidad y la seguridad del paciente, revisando indicadores, analizando eventos adversos y recorriendo los servicios, y sostiene una cultura de notificación no punitiva?', ref:'ISO 7101 cláusulas 5.1 y 8 · OMS atención segura · Baldrige 1.1'}
+   ]},
+   {letra:'C', nombre:'Ética, transparencia y responsabilidad social', puntos:25, preguntas:[
+    {n:4, peso:25, texto:'¿La conducción actúa con criterios explícitos de ética, transparencia y rendición de cuentas, y participa en programas dirigidos a mejorar la salud y la calidad de vida de la comunidad?', ref:'ISO 7101 cláusula 5.3 · Baldrige 1.2 · EFQM criterio 1'}
+   ]}
+  ]}
+ ]},
+ {id:'C2', comp:'Componente 2', compNom:'Sistema de gestión', puntos:440, criterios:[
+  {id:'cr2', num:2, nombre:'Planeamiento estratégico', puntos:80, tipo:'enfoque', factores:[
+   {letra:'A', nombre:'Proceso de planeamiento y análisis del contexto', puntos:40, preguntas:[
+    {n:5, peso:20, texto:'¿Aplica la organización un proceso sistemático de planeamiento que parte del análisis del contexto, del perfil epidemiológico de su población y de las expectativas de las partes interesadas, e identifica riesgos y oportunidades?', ref:'ISO 7101 cláusulas 4 y 6 · ISO 31000 · Baldrige 2.1'},
+    {n:6, peso:20, texto:'¿Definió la periodicidad con que revisa sus estrategias y las actualiza cuando cambian la demanda, la tecnología disponible, el financiamiento o la normativa?', ref:'ISO 9001 cláusula 9.3 · Baldrige 2.1a · EFQM criterio 1'}
+   ]},
+   {letra:'B', nombre:'Estrategias, planes y objetivos', puntos:40, preguntas:[
+    {n:7, peso:20, texto:'¿Traduce las estrategias en planes de acción con objetivos medibles, responsables, plazos y recursos asignados, y verifica su alineación con la dirección definida?', ref:'ISO 7101 cláusula 6.2 · Baldrige 2.2 · EFQM criterio 5'},
+    {n:8, peso:20, texto:'¿Comunica los planes al resto de la organización y monitorea su avance con indicadores, corrigiendo los desvíos que detecta?', ref:'Baldrige 2.2b · EFQM lógica REDER'}
+   ]}
+  ]},
+  {id:'cr3', num:3, nombre:'Enfoque en las personas usuarias y la población', puntos:100, tipo:'enfoque', factores:[
+   {letra:'A', nombre:'Conocimiento de la población y equidad en el acceso', puntos:35, preguntas:[
+    {n:9, peso:15, texto:'¿Identifica y caracteriza la organización a la población a su cargo, con su perfil demográfico, epidemiológico y social, y detecta las barreras de acceso que enfrentan los distintos grupos para adecuar su oferta?', ref:'OMS equidad y acceso · ISO 7101 cláusula 4.2 · Baldrige 3.1'},
+    {n:10, peso:20, texto:'¿Capacita al personal en contacto con las personas usuarias en trato digno, comunicación, interculturalidad y derechos del paciente?', ref:'ISO 7101 cláusula 7.2 · OMS atención centrada en las personas'}
+   ]},
+   {letra:'B', nombre:'Atención centrada en la persona, información y participación', puntos:25, preguntas:[
+    {n:11, peso:25, texto:'¿Provee información clara y accesible por canales presenciales y digitales, y habilita la participación de las personas usuarias y sus familias en las decisiones sobre su cuidado?', ref:'ISO 7101 cláusula 8.2 · OMS coproducción · Baldrige 3.2'}
+   ]},
+   {letra:'C', nombre:'Gestión de quejas, reclamos y sugerencias', puntos:15, preguntas:[
+    {n:12, peso:5, texto:'¿Existe un procedimiento formal, conocido y accesible para el manejo de quejas, reclamos y sugerencias?', ref:'ISO 9001 cláusula 8.2.1 · ISO 10002'},
+    {n:13, peso:5, texto:'¿Verifica que las quejas y reclamos se resuelvan en plazo y de forma completa, con respuesta a la persona que los presentó?', ref:'ISO 10002 · Baldrige 3.2b'},
+    {n:14, peso:5, texto:'¿Analiza la información de quejas y reclamos para encontrar las causas raíz y aplicar mejoras que eviten su repetición?', ref:'ISO 7101 cláusula 10 · análisis de causa raíz'}
+   ]},
+   {letra:'D', nombre:'Medición de la experiencia, la satisfacción y la confianza', puntos:25, preguntas:[
+    {n:15, peso:15, texto:'¿Aplica métodos sistemáticos para medir la experiencia y la satisfacción de las personas usuarias, y compara los resultados entre servicios y entre períodos?', ref:'Baldrige 3.2 · ISO 7101 cláusula 9.1 · encuestas de experiencia'},
+    {n:16, peso:10, texto:'¿Estableció la periodicidad de esas mediciones y utiliza sus resultados como insumo del plan de mejoras?', ref:'EFQM criterio 6 · ISO 7101 cláusula 9.1'}
+   ]}
+  ]},
+  {id:'cr4', num:4, nombre:'Gestión de procesos y seguridad del paciente', puntos:100, tipo:'enfoque', factores:[
+   {letra:'A', nombre:'Enfoque de la gestión por procesos', puntos:30, preguntas:[
+    {n:17, peso:15, texto:'¿Identifica, documenta y mantiene actualizado el mapa de procesos clave, asistenciales, de apoyo y de gestión, y su relación con la estructura organizacional?', ref:'ISO 9001 cláusula 4.4 · ISO 7101 cláusula 8 · Baldrige 6.1'},
+    {n:18, peso:15, texto:'¿Asigna responsables por proceso, define indicadores de desempeño y aplica el ciclo de mejora continua para elevar los resultados?', ref:'Ciclo PHVA · ISO 7101 cláusula 10 · EFQM criterio 5'}
+   ]},
+   {letra:'B', nombre:'Diseño de servicios y gestión de riesgos', puntos:25, preguntas:[
+    {n:19, peso:25, texto:'¿El diseño de los servicios y procesos, propios y de los prestadores contratados, contempla los requisitos legales y de habilitación, la seguridad e higiene, la salud ocupacional y el manejo de residuos, con evaluación previa de riesgos?', ref:'ISO 7101 cláusula 8.1 · ISO 31000 · normativa provincial de habilitación'}
+   ]},
+   {letra:'C', nombre:'Prestación de servicios, seguridad del paciente y apoyo', puntos:20, preguntas:[
+    {n:20, peso:7, texto:'¿Define estándares e indicadores de calidad y seguridad para los procesos asistenciales, incluidas las prácticas seguras de identificación del paciente, higiene de manos, seguridad quirúrgica, uso de medicamentos y control de infecciones?', ref:'OMS prácticas seguras · ISO 7101 cláusula 8.3'},
+    {n:21, peso:7, texto:'¿Asegura la calidad mediante mediciones periódicas, auditorías de proceso y de historia clínica, y un sistema de notificación y análisis de incidentes y eventos adversos?', ref:'ISO 7101 cláusula 9.2 · notificación de eventos'},
+    {n:22, peso:6, texto:'¿Establece acciones correctivas y preventivas frente a los desvíos detectados y verifica después su eficacia?', ref:'ISO 9001 cláusula 10.2 · ISO 7101 cláusula 10'}
+   ]},
+   {letra:'D', nombre:'Procesos relativos a proveedores y tecnología', puntos:10, preguntas:[
+    {n:23, peso:10, texto:'¿Evalúa y selecciona a sus proveedores críticos de insumos, medicamentos, equipamiento y servicios tercerizados con estándares e indicadores definidos, y les devuelve el resultado de esas mediciones para que mejoren?', ref:'ISO 9001 cláusula 8.4 · Baldrige 6.1c · resiliencia de la cadena de suministro'}
+   ]},
+   {letra:'E', nombre:'Integración en red y continuidad del cuidado', puntos:15, preguntas:[
+    {n:24, peso:15, texto:'¿Gestiona la referencia y contrarreferencia con los demás niveles de la red y mide la oportunidad y la efectividad de las derivaciones y del seguimiento posterior?', ref:'OMS atención integrada · redes integradas de servicios de salud'}
+   ]}
+  ]},
+  {id:'cr5', num:5, nombre:'Gestión de las personas', puntos:100, tipo:'enfoque', factores:[
+   {letra:'A', nombre:'Planeamiento, conducción y reconocimiento', puntos:40, preguntas:[
+    {n:25, peso:13, texto:'¿Planifica la dotación, la selección, la inducción y el desarrollo del personal en función de la carga asistencial y de las competencias que requiere cada servicio?', ref:'ISO 7101 cláusula 7.1 · Baldrige 5.1 · OMS fuerza de trabajo'},
+    {n:26, peso:14, texto:'¿Asigna y comunica objetivos claros a cada persona o equipo, de modo que puedan autoevaluar sus logros, y evalúa el desempeño con criterios conocidos?', ref:'Baldrige 5.2 · EFQM criterio 3'},
+    {n:27, peso:13, texto:'¿Reconoce el desempeño y los aportes a la mejora, por vías económicas y no económicas, y promueve el trabajo en equipo interdisciplinario?', ref:'Baldrige 5.2c · EFQM criterio 3'}
+   ]},
+   {letra:'B', nombre:'Educación, capacitación y desarrollo', puntos:30, preguntas:[
+    {n:28, peso:30, texto:'¿Detecta necesidades de capacitación, ejecuta un plan anual que incluye formación en calidad y seguridad del paciente, y evalúa el impacto de esa formación en la práctica?', ref:'ISO 7101 cláusula 7.2 · Baldrige 5.2b'}
+   ]},
+   {letra:'C', nombre:'Salud, clima y bienestar del personal', puntos:30, preguntas:[
+    {n:29, peso:15, texto:'¿Gestiona las condiciones y el medio ambiente de trabajo, la salud ocupacional y la prevención del desgaste profesional, sosteniendo un ambiente que motive al personal?', ref:'ISO 45001 · ISO 45003 · Baldrige 5.1b'},
+    {n:30, peso:15, texto:'¿Mide el clima, la satisfacción y el compromiso del personal, y utiliza los resultados para la mejora?', ref:'Baldrige 5.1 · EFQM criterio 6'}
+   ]}
+  ]},
+  {id:'cr6', num:6, nombre:'Gestión de recursos, información y conocimiento', puntos:60, tipo:'enfoque', factores:[
+   {letra:'A', nombre:'Recursos económicos, financieros y físicos', puntos:25, preguntas:[
+    {n:31, peso:14, texto:'¿Analiza y asigna sus recursos económicos, financieros y físicos según prioridades sanitarias y objetivos planificados, con criterios explícitos de costo y efectividad?', ref:'ISO 7101 cláusula 7.1 · Baldrige 6.2 · evaluación económica en salud'},
+    {n:32, peso:11, texto:'¿Utiliza la información económico financiera y de costos para tomar decisiones y mejorar la eficiencia del uso de los recursos?', ref:'Baldrige 4.1 · contabilidad de costos hospitalarios'}
+   ]},
+   {letra:'B', nombre:'Información, digitalización y conocimiento', puntos:15, preguntas:[
+    {n:33, peso:7.5, texto:'¿Tiene identificadas sus fuentes de datos y asegura la calidad, la integridad, la interoperabilidad y el resguardo de la información clínica y de gestión, incluidas la historia clínica electrónica y la protección de datos personales?', ref:'ISO 7101 cláusula 7.5 · Ley 25.326 · interoperabilidad en salud'},
+    {n:34, peso:7.5, texto:'¿Evalúa la efectividad de sus sistemas de información e indicadores y gestiona el conocimiento organizacional, con documentación, lecciones aprendidas y difusión de buenas prácticas?', ref:'Baldrige 4.2 · ISO 7101 cláusula 7.1.6 · EFQM criterio 4'}
+   ]},
+   {letra:'C', nombre:'Sostenibilidad ambiental y continuidad operativa', puntos:20, preguntas:[
+    {n:35, peso:10, texto:'¿La política de la organización asume el compromiso con el ambiente, con objetivos y metas definidas para residuos patogénicos, consumo de energía y de agua y huella de carbono?', ref:'ISO 14001 · salud ambientalmente sostenible · EFQM criterio 1'},
+    {n:36, peso:10, texto:'¿Destina recursos a difundir y sostener esas acciones y cuenta con planes de continuidad y respuesta ante emergencias, desastres y brotes?', ref:'ISO 22301 · Reglamento Sanitario Internacional · ISO 7101 cláusula 8.5'}
+   ]}
+  ]}
+ ]},
+ {id:'C3', comp:'Componente 3', compNom:'Resultados', puntos:440, criterios:[
+  {id:'cr7', num:7, nombre:'Resultados', puntos:440, tipo:'resultados', factores:[
+   {letra:'A', nombre:'Resultados de experiencia, satisfacción y confianza', puntos:110, preguntas:[
+    {n:37, peso:110, texto:'¿Cómo son los resultados de los indicadores de experiencia, satisfacción y confianza de las personas usuarias, incluidas las quejas resueltas en plazo?', ref:'Baldrige 7.2 · EFQM criterio 6'}
+   ]},
+   {letra:'B', nombre:'Resultados de cobertura, acceso y equidad', puntos:50, preguntas:[
+    {n:38, peso:50, texto:'¿Cómo son los resultados de cobertura efectiva, tiempos de espera y equidad en el acceso, analizados por grupo poblacional y por área geográfica?', ref:'OMS cobertura efectiva · Baldrige 7.1'}
+   ]},
+   {letra:'C', nombre:'Resultados económico financieros y de eficiencia', puntos:90, preguntas:[
+    {n:39, peso:45, texto:'¿Cómo son los resultados de la evolución de los ingresos, el financiamiento obtenido y la ejecución presupuestaria?', ref:'Baldrige 7.5 · EFQM criterio 7'},
+    {n:40, peso:45, texto:'¿Cómo son los resultados de la evolución de los gastos, los costos por prestación y la productividad de los recursos?', ref:'Baldrige 7.5 · indicadores de eficiencia hospitalaria'}
+   ]},
+   {letra:'D', nombre:'Resultados asistenciales, operativos y de seguridad', puntos:50, preguntas:[
+    {n:41, peso:50, texto:'¿Cómo son los resultados de los indicadores de calidad asistencial y seguridad del paciente, como infecciones asociadas al cuidado, eventos adversos, reingresos, mortalidad evitable y cumplimiento de estándares operativos?', ref:'Baldrige 7.1 · OMS atención efectiva y segura'}
+   ]},
+   {letra:'E', nombre:'Resultados relativos a proveedores y abastecimiento', puntos:20, preguntas:[
+    {n:42, peso:20, texto:'¿Cómo son los resultados de los indicadores de desempeño de los proveedores críticos, incluidos el cumplimiento de entregas y la disponibilidad de insumos y medicamentos?', ref:'Baldrige 7.1c'}
+   ]},
+   {letra:'F', nombre:'Resultados de la integración en red y continuidad del cuidado', puntos:20, preguntas:[
+    {n:43, peso:20, texto:'¿Cómo son los resultados de la referencia y contrarreferencia, la oportunidad de las derivaciones y la continuidad del seguimiento entre niveles de atención?', ref:'OMS atención integrada'}
+   ]},
+   {letra:'G', nombre:'Resultados de la gestión de las personas', puntos:60, preguntas:[
+    {n:44, peso:60, texto:'¿Cómo son los resultados de clima, satisfacción, ausentismo, rotación y capacitación del personal?', ref:'Baldrige 7.3 · EFQM criterio 6'}
+   ]},
+   {letra:'H', nombre:'Resultados de responsabilidad social y ambiental', puntos:40, preguntas:[
+    {n:45, peso:40, texto:'¿Cómo son los resultados de las acciones dirigidas a la comunidad y del desempeño ambiental, incluidos el manejo de residuos y el consumo de energía?', ref:'Baldrige 7.4 · EFQM criterio 7'}
+   ]}
+  ]}
+ ]}
+];
+
+const KEY = 'autoeval_calidad_salud_v2026';
+const CAMPOS_ORG = ['org_nombre','org_tipo','org_juris','org_periodo','org_fecha','org_resp','org_equipo','org_desc','org_alcance','org_conclusiones'];
+let estado = {org:{}, resp:{}};
+let nivelRadar = 'criterio';
+let panelActivo = 'p-caratula';
+let chartRadar = null, chartBarras = null;
+const chartsCriterio = {};
+
+function todasPreguntas(){
+  const out = [];
+  MODELO.forEach(c => c.criterios.forEach(cr => cr.factores.forEach(f => f.preguntas.forEach(p =>
+    out.push(Object.assign({}, p, {crId:cr.id, crNum:cr.num, crNom:cr.nombre, tipo:cr.tipo, facLetra:f.letra, facNom:f.nombre, compNom:c.compNom}))
+  ))));
+  return out;
+}
+const PREGUNTAS = todasPreguntas();
+
+function r(x){ return Math.round(x*10)/10; }
+function fmt(x){ return (Math.abs(x - Math.round(x)) < 0.05) ? String(Math.round(x)) : x.toFixed(1).replace('.',','); }
+function gradoDe(pct){ for(const g of GRADOS){ if(pct >= g.min) return g; } return GRADOS[GRADOS.length-1]; }
+
+/* ---------- construcción del DOM ---------- */
+function construir(){
+  const tabBar = document.getElementById('tabBar');
+  const cont = document.getElementById('panelesCriterios');
+  const tabs = [{id:'p-caratula', nom:'Organización'}, {id:'p-guia', nom:'Guía'}];
+
+  MODELO.forEach(comp => comp.criterios.forEach(cr => {
+    tabs.push({id:'p-'+cr.id, nom:cr.num+'. '+cr.nombre, pts:cr.puntos});
+    const sec = document.createElement('section');
+    sec.className = 'panel'; sec.id = 'p-'+cr.id; sec.style.display = 'none';
+    let h = '<div class="section-header"><p class="eyebrow">'+comp.comp+' · '+comp.compNom+' · '+fmt(cr.puntos)+' puntos</p><h2>'+cr.num+'. '+cr.nombre+'</h2></div>';
+    if(cr.tipo === 'resultados'){
+      h += '<div class="nota">Para cada aspecto se debe contar con la serie de los últimos tres años de la organización, las metas internas fijadas y, cuando exista, la comparación con otras organizaciones del sector o con estándares de referencia. Sin serie y sin comparación el puntaje no puede superar el tercer nivel.</div>';
+    }
+    const tipoG = cr.factores.length >= 3 ? 'telaraña' : 'barras';
+    h += '<div class="card perfil-criterio">'
+       + '<p class="card-title">Perfil del criterio por factor</p>'
+       + '<div class="chart-box crit' + (tipoG === 'barras' ? ' short' : '') + '"><canvas id="rc-' + cr.id + '"></canvas></div>'
+       + '<p class="perfil-pie" id="pp-' + cr.id + '"></p>'
+       + '</div>';
+    cr.factores.forEach(f => {
+      h += '<div class="factor-head"><h3>'+f.letra+') '+f.nombre+' <span class="factor-max">('+fmt(f.puntos)+' puntos)</span></h3><span class="factor-pts" id="fp-'+cr.id+'-'+f.letra+'">alcanzado 0 de '+fmt(f.puntos)+'</span></div>';
+      f.preguntas.forEach(p => h += htmlPregunta(p, cr));
+    });
+    sec.innerHTML = h;
+    cont.appendChild(sec);
+  }));
+
+  tabs.push({id:'p-resumen', nom:'Resultado y telaraña'});
+  tabs.push({id:'p-om', nom:'Oportunidades de mejora'});
+  tabs.forEach((t,i) => {
+    const b = document.createElement('button');
+    b.className = 'tab' + (i===0 ? ' active' : '');
+    b.innerHTML = t.nom + (t.pts ? ' <span class="tab-pts">('+fmt(t.pts)+' pts)</span>' : '');
+    b.onclick = () => mostrar(t.id, b);
+    tabBar.appendChild(b);
+  });
+
+  document.getElementById('guiaEnfoque').innerHTML = NIVELES_ENFOQUE.map((n,i) =>
+    '<dt>'+i+'. '+n.nom+' <span style="font-family:\'IBM Plex Mono\',monospace;font-weight:400;color:#6A625A">('+(FACTORES_NIVEL[i]*100)+' %)</span></dt><dd>'+n.desc+'</dd>').join('');
+  document.getElementById('guiaResultados').innerHTML = NIVELES_RESULTADOS.map((n,i) =>
+    '<dt>'+i+'. '+n.nom+' <span style="font-family:\'IBM Plex Mono\',monospace;font-weight:400;color:#6A625A">('+(FACTORES_NIVEL[i]*100)+' %)</span></dt><dd>'+n.desc+'</dd>').join('');
+  document.getElementById('tblBandas').innerHTML = BANDAS.map(b =>
+    '<tr><td class="num">'+b.min+' a '+b.max+'</td><td>'+b.txt+'</td></tr>').join('');
+}
+
+function htmlPregunta(p, cr){
+  const nv = cr.tipo === 'resultados' ? NIVELES_RESULTADOS : NIVELES_ENFOQUE;
+  let h = '<div class="preg" id="preg-'+p.n+'">';
+  h += '<div class="preg-top"><span class="preg-n">'+p.n+'</span><span class="preg-txt">'+p.texto+'</span><span class="preg-peso">('+fmt(p.peso)+' puntos)</span></div>';
+  h += '<p class="refs">'+p.ref+'</p>';
+  h += '<div class="niveles" id="niv-'+p.n+'">';
+  nv.forEach((n,i) => {
+    h += '<label class="nivel" data-n="'+p.n+'" data-i="'+i+'"><input type="radio" name="q'+p.n+'" value="'+i+'" onchange="setNivel('+p.n+','+i+')">'
+       + '<span class="nv-nom">'+n.nom+'</span>'+n.desc+'<span class="nv-pts">('+fmt(p.peso*FACTORES_NIVEL[i])+' puntos)</span></label>';
+  });
+  h += '</div>';
+  h += '<p class="aviso-falta">Falta elegir el nivel de implementación.</p>';
+  h += '<p class="estado-print" id="ep-'+p.n+'"></p>';
+  h += '<div class="campos">';
+  h += '<div><label class="campo-lbl" for="ev-'+p.n+'">Datos y evidencias<span class="req">*</span></label><textarea id="ev-'+p.n+'" required aria-required="true" oninput="setTexto('+p.n+',\'ev\',this.value)" placeholder="Documento, registro, indicador o medición que respalda la respuesta, con su ubicación"></textarea></div>';
+  h += '<div><label class="campo-lbl" for="om-'+p.n+'">Oportunidad de mejora<span class="req">*</span></label><textarea id="om-'+p.n+'" required aria-required="true" oninput="setTexto('+p.n+',\'om\',this.value)" placeholder="Qué falta para pasar al nivel siguiente. Si no detecta ninguna, dejarlo dicho"></textarea></div>';
+  h += '</div>';
+  h += '<div class="preg-foot"><label class="chk-na"><input type="checkbox" id="na-'+p.n+'" onchange="setNA('+p.n+',this.checked)"> No aplica a esta organización</label>'
+     + '<span class="puntaje-preg" id="pt-'+p.n+'">asignado 0 de '+fmt(p.peso)+' puntos</span></div>';
+  h += '</div>';
+  return h;
+}
+
+function mostrar(id, btn){
+  document.querySelectorAll('.panel').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  panelActivo = id;
+  if(btn) btn.classList.add('active');
+  if(id === 'p-resumen'){ dibujarGraficos(); }
+  if(id === 'p-om'){ pintarOM(); }
+  if(id.indexOf('p-cr') === 0){ dibujarCriterio(id.slice(2)); }
+  document.querySelectorAll('#'+id+' textarea').forEach(autoAlto);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------- estado ---------- */
+function rp(n){ if(!estado.resp[n]) estado.resp[n] = {}; return estado.resp[n]; }
+function setNivel(n, i){ rp(n).nivel = i; marcarNivel(n); recalcular(); persistir('resp', n+'-nivel', i, 0); }
+function setTexto(n, campo, v){
+  rp(n)[campo] = v;
+  const el = document.getElementById(campo+'-'+n);
+  if(el && v.trim()) el.classList.remove('falta');
+  persistir('resp', n+'-'+campo, v, 700); pendientesDiferido(); if(campo==='om') marcarOMdirty();
+}
+function pendientesDiferido(){ clearTimeout(window._tp); window._tp = setTimeout(actualizarPendientes, 300); }
+function setNA(n, v){
+  rp(n).na = v;
+  pintarNA(n);
+  recalcular(); persistir('resp', n+'-na', v, 0);
+}
+function pintarNA(n){
+  const v = !!rp(n).na;
+  const box = document.getElementById('preg-'+n);
+  box.classList.toggle('na', v);
+  box.querySelectorAll('input[type=radio]').forEach(r => r.disabled = v || soloLectura);
+  const chk = document.getElementById('na-'+n);
+  if(chk) chk.checked = v;
+  marcarNivel(n);
+}
+function setMeta(n, campo, v){ rp(n)[campo] = v; persistir('resp', n+'-'+campo, v, campo === 'prio' ? 0 : 700); }
+function marcarNivel(n){
+  document.querySelectorAll('#niv-'+n+' .nivel').forEach(l =>
+    l.classList.toggle('sel', String(rp(n).nivel) === l.dataset.i));
+  const e = estado.resp[n] || {};
+  const box = document.getElementById('preg-'+n);
+  const hecho = e.na || (e.nivel !== undefined && e.nivel !== null);
+  if(box){
+    box.classList.toggle('respondida', !!hecho);
+    if(hecho) box.classList.remove('falta-nivel');
+  }
+}
+function marcarOMdirty(){ const t = document.getElementById('p-om'); if(t && t.style.display !== 'none') pintarOM(); }
+/* si alguien está escribiendo en la tabla, no se la redibuja bajo sus dedos */
+let omDiferido = false;
+
+function puntajePreg(p){
+  const e = estado.resp[p.n] || {};
+  if(e.na) return {pts:0, base:0, na:true, resp:true};
+  if(e.nivel === undefined || e.nivel === null) return {pts:0, base:p.peso, na:false, resp:false};
+  return {pts: p.peso * FACTORES_NIVEL[e.nivel], base:p.peso, na:false, resp:true};
+}
+
+function agregados(){
+  const porFactor = {}, porCriterio = {}, porComponente = {};
+  let tot = 0, base = 0, resp = 0, na = 0;
+  MODELO.forEach(c => {
+    porComponente[c.compNom] = {pts:0, base:0};
+    c.criterios.forEach(cr => {
+      porCriterio[cr.id] = {pts:0, base:0, nom:cr.nombre, num:cr.num, max:cr.puntos};
+      cr.factores.forEach(f => {
+        const k = cr.id+'-'+f.letra;
+        porFactor[k] = {pts:0, base:0, nom:f.nombre, letra:f.letra, max:f.puntos, crId:cr.id, crNum:cr.num};
+        f.preguntas.forEach(p => {
+          const s = puntajePreg(p);
+          porFactor[k].pts += s.pts; porFactor[k].base += s.base;
+          porCriterio[cr.id].pts += s.pts; porCriterio[cr.id].base += s.base;
+          porComponente[c.compNom].pts += s.pts; porComponente[c.compNom].base += s.base;
+          tot += s.pts; base += s.base;
+          if(s.resp) resp++;
+          if(s.na) na++;
+        });
+      });
+    });
+  });
+  return {porFactor, porCriterio, porComponente, tot, base, resp, na};
+}
+
+function recalcular(){
+  const a = agregados();
+  PREGUNTAS.forEach(p => {
+    const s = puntajePreg(p);
+    const el = document.getElementById('pt-'+p.n);
+    if(el) el.textContent = s.na ? 'no aplica' : 'asignado '+fmt(r(s.pts))+' de '+fmt(p.peso)+' puntos';
+  });
+  Object.keys(a.porFactor).forEach(k => {
+    const f = a.porFactor[k], el = document.getElementById('fp-'+k);
+    if(el) el.textContent = 'alcanzado '+fmt(r(f.pts))+' de '+fmt(f.base)+(f.base < f.max ? ' (base ajustada por no aplica)' : '');
+  });
+  const pct = a.base > 0 ? (a.tot/a.base*100) : 0;
+  document.getElementById('chipPuntaje').textContent = fmt(r(a.tot));
+  document.getElementById('chipBase').textContent = fmt(a.base);
+  document.getElementById('chipPct').textContent = Math.round(pct)+'%';
+  document.getElementById('kTotal').textContent = fmt(r(a.tot));
+  document.getElementById('kBase').textContent = fmt(a.base);
+  document.getElementById('kPct').textContent = Math.round(pct)+'%';
+  document.getElementById('kBrecha').textContent = fmt(r(a.base - a.tot));
+  document.getElementById('kResp').textContent = a.resp;
+  document.getElementById('kNA').textContent = 'sobre 45'+(a.na ? ', '+a.na+' marcadas como no aplica' : '');
+  const escala1000 = a.base > 0 ? a.tot/a.base*1000 : 0;
+  const banda = BANDAS.find(b => escala1000 >= b.min && escala1000 <= b.max) || BANDAS[0];
+  document.getElementById('kBanda').textContent = a.resp ? banda.txt : 'Sin datos cargados';
+  const av = a.resp/45*100;
+  document.getElementById('barraAvance').style.width = av+'%';
+  document.getElementById('txtAvance').textContent = a.resp+' de 45';
+  actualizarPendientes();
+  pintarTablaGrado(a);
+  pintarLectura(a, escala1000, banda);
+  cabeceraImpresion();
+  if(document.getElementById('p-resumen').style.display !== 'none') dibujarGraficos();
+  dibujarCriterioVisible();
+}
+
+function pintarTablaGrado(a){
+  let h = '';
+  MODELO.forEach(c => c.criterios.forEach(cr => {
+    const d = a.porCriterio[cr.id], pct = d.base > 0 ? d.pts/d.base*100 : 0, g = gradoDe(pct);
+    h += '<tr class="fila-criterio"><td>'+cr.num+'. '+cr.nombre+'</td><td class="num">'+fmt(r(d.pts))+'</td><td class="num">'+fmt(d.base)+'</td><td class="num">'+Math.round(pct)+'</td><td><span class="badge '+g.cls+'">'+g.nom+'</span></td></tr>';
+    cr.factores.forEach(f => {
+      const k = cr.id+'-'+f.letra, df = a.porFactor[k];
+      const pf = df.base > 0 ? df.pts/df.base*100 : 0, gf = gradoDe(pf);
+      h += '<tr><td style="padding-left:20px">'+f.letra+') '+f.nombre+'</td><td class="num">'+fmt(r(df.pts))+'</td><td class="num">'+fmt(df.base)+'</td><td class="num">'+Math.round(pf)+'</td><td><span class="badge '+gf.cls+'">'+gf.nom+'</span></td></tr>';
+    });
+  }));
+  const tot = a.base > 0 ? a.tot/a.base*100 : 0, gt = gradoDe(tot);
+  h += '<tr class="fila-criterio"><td>Total del cuestionario</td><td class="num">'+fmt(r(a.tot))+'</td><td class="num">'+fmt(a.base)+'</td><td class="num">'+Math.round(tot)+'</td><td><span class="badge '+gt.cls+'">'+gt.nom+'</span></td></tr>';
+  document.getElementById('tblGrado').innerHTML = h;
+}
+
+function pintarLectura(a, escala1000, banda){
+  if(!a.resp){ document.getElementById('lectura').innerHTML = '<p>Todavía no hay respuestas cargadas.</p>'; return; }
+  const crits = [];
+  MODELO.forEach(c => c.criterios.forEach(cr => {
+    const d = a.porCriterio[cr.id];
+    crits.push({nom:cr.num+'. '+cr.nombre, pct: d.base > 0 ? d.pts/d.base*100 : 0, brecha: d.base - d.pts});
+  }));
+  const orden = crits.slice().sort((x,y) => y.pct - x.pct);
+  const porBrecha = crits.slice().sort((x,y) => y.brecha - x.brecha);
+  let h = '<p>La organización alcanza '+fmt(r(a.tot))+' puntos sobre '+fmt(a.base)+' aplicables, equivalentes a '+Math.round(escala1000)+' puntos en la escala de 1.000. '+banda.txt+'</p>';
+  h += '<p>El criterio con mejor desempeño relativo es '+orden[0].nom+', con '+Math.round(orden[0].pct)+' % de excelencia alcanzada. El más rezagado es '+orden[orden.length-1].nom+', con '+Math.round(orden[orden.length-1].pct)+' %.</p>';
+  h += '<p>Medida en puntos, la mayor oportunidad de mejora está en '+porBrecha[0].nom+', donde quedan disponibles '+fmt(r(porBrecha[0].brecha))+' puntos, seguida por '+porBrecha[1].nom+' con '+fmt(r(porBrecha[1].brecha))+' puntos. Conviene ordenar el plan de mejoras por ese criterio antes que por el porcentaje, porque es donde el esfuerzo rinde más.</p>';
+  const cE = a.porComponente['Liderazgo'], cS = a.porComponente['Sistema de gestión'], cR = a.porComponente['Resultados'];
+  const pE = cE.base ? cE.pts/cE.base*100 : 0, pS = cS.base ? cS.pts/cS.base*100 : 0, pR = cR.base ? cR.pts/cR.base*100 : 0;
+  h += '<p>Por componente: liderazgo '+Math.round(pE)+' %, sistema de gestión '+Math.round(pS)+' % y resultados '+Math.round(pR)+' %. ';
+  if(pR + 12 < pS) h += 'El sistema de gestión va por delante de los resultados, lo que suele indicar prácticas instaladas que todavía no se miden o cuyo efecto no se ha verificado.';
+  else if(pS + 12 < pR) h += 'Los resultados superan al sistema de gestión, una combinación que suele señalar desempeño sostenido por esfuerzo individual más que por procesos documentados, con el riesgo de no ser reproducible.';
+  else h += 'Ambos componentes avanzan de manera pareja.';
+  h += '</p>';
+  document.getElementById('lectura').innerHTML = h;
+}
+
+function setNivelRadar(v){ nivelRadar = v; dibujarGraficos(); }
+
+function criterioPorId(id){
+  let out = null;
+  MODELO.forEach(c => c.criterios.forEach(cr => { if(cr.id === id) out = cr; }));
+  return out;
+}
+
+/* perfil del criterio: telaraña por factor, o barras cuando hay menos de tres factores */
+function dibujarCriterio(crId){
+  if(typeof Chart === 'undefined') return;
+  const cr = criterioPorId(crId);
+  const cv = document.getElementById('rc-' + crId);
+  if(!cr || !cv) return;
+  const a = agregados();
+
+  const etiquetas = [], valores = [], brechas = [];
+  cr.factores.forEach(f => {
+    const d = a.porFactor[crId + '-' + f.letra];
+    etiquetas.push(f.letra + ') ' + cortar(f.nombre, 30));
+    valores.push(d.base > 0 ? r(d.pts / d.base * 100) : 0);
+    brechas.push(r(d.base - d.pts));
+  });
+
+  const comun = {responsive:true, maintainAspectRatio:false, animation:false,
+                 devicePixelRatio:Math.max(2, window.devicePixelRatio || 1)};
+  let cfg;
+  if(cr.factores.length >= 3){
+    cfg = {type:'radar',
+      data:{labels:etiquetas, datasets:[
+        {label:'Excelencia', data:etiquetas.map(() => 100), borderColor:'#BFA666', borderWidth:1.5,
+         borderDash:[5,4], pointRadius:0, fill:false},
+        {label:'Excelencia alcanzada (%)', data:valores, borderColor:'#980000',
+         backgroundColor:'rgba(155,22,9,.22)', borderWidth:2, pointBackgroundColor:'#9B1609', pointRadius:3}
+      ]},
+      options:Object.assign({}, comun, {
+        scales:{r:{min:0, max:100, ticks:{stepSize:20, backdropColor:'transparent', font:{size:9}},
+                   pointLabels:{font:{size:10}}, grid:{color:'#E0D8C9'}, angleLines:{color:'#E0D8C9'}}},
+        plugins:{legend:{labels:{boxWidth:12, padding:14}},
+                 tooltip:{backgroundColor:'#1F1B18',
+                          callbacks:{label:c => c.dataset.label + ': ' + c.formattedValue + ' %'}}}})};
+  }else{
+    cfg = {type:'bar',
+      data:{labels:etiquetas, datasets:[
+        {label:'Excelencia alcanzada (%)', data:valores, backgroundColor:'#9B1609', borderRadius:2}
+      ]},
+      options:Object.assign({}, comun, {
+        indexAxis:'y',
+        scales:{x:{min:0, max:100, grid:{color:'#E9E3D8'}, title:{display:true, text:'% de excelencia alcanzada'}},
+                y:{grid:{display:false}}},
+        plugins:{legend:{display:false},
+                 tooltip:{backgroundColor:'#1F1B18',
+                          callbacks:{label:c => c.formattedValue + ' % · brecha ' + fmt(brechas[c.dataIndex]) + ' puntos'}}}})};
+  }
+  if(chartsCriterio[crId]) chartsCriterio[crId].destroy();
+  chartsCriterio[crId] = new Chart(cv, cfg);
+
+  const d = a.porCriterio[crId];
+  const pct = d.base > 0 ? d.pts / d.base * 100 : 0;
+  const g = gradoDe(pct);
+  const pie = document.getElementById('pp-' + crId);
+  if(pie){
+    const flojo = cr.factores.map(f => {
+      const df = a.porFactor[crId + '-' + f.letra];
+      return {letra:f.letra, nom:f.nombre, pct: df.base > 0 ? df.pts / df.base * 100 : 0, brecha: df.base - df.pts};
+    }).sort((x, y) => y.brecha - x.brecha)[0];
+    pie.innerHTML = 'Criterio ' + cr.num + ': <b>' + fmt(r(d.pts)) + ' de ' + fmt(d.base) + ' puntos</b> · '
+      + '<b>' + Math.round(pct) + ' %</b> de excelencia alcanzada · ' + g.nom
+      + (flojo && flojo.brecha > 0
+          ? '. La mayor brecha está en ' + flojo.letra + ') ' + flojo.nom + ', con ' + fmt(r(flojo.brecha)) + ' puntos disponibles.'
+          : '.');
+  }
+}
+
+function dibujarCriterioVisible(){
+  const vis = document.querySelector('.panel[id^="p-cr"]:not([style*="display: none"])');
+  if(vis) dibujarCriterio(vis.id.slice(2));
+}
+
+function dibujarGraficos(){
+  if(typeof Chart === 'undefined') return;
+  const a = agregados();
+  Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+  Chart.defaults.font.size = 11;
+  Chart.defaults.color = getComputedStyle(document.body).getPropertyValue('--ink-mid').trim() || '#6A625A';
+  document.getElementById('btnRadarCrit').classList.toggle('ghost', nivelRadar !== 'criterio');
+  document.getElementById('btnRadarFact').classList.toggle('ghost', nivelRadar !== 'factor');
+
+  let labels = [], datos = [];
+  if(nivelRadar === 'criterio'){
+    MODELO.forEach(c => c.criterios.forEach(cr => {
+      const d = a.porCriterio[cr.id];
+      labels.push(cr.num+'. '+cortar(cr.nombre, 34));
+      datos.push(d.base > 0 ? r(d.pts/d.base*100) : 0);
+    }));
+  } else {
+    MODELO.forEach(c => c.criterios.forEach(cr => cr.factores.forEach(f => {
+      const d = a.porFactor[cr.id+'-'+f.letra];
+      labels.push(cr.num+f.letra+' '+cortar(f.nombre, 26));
+      datos.push(d.base > 0 ? r(d.pts/d.base*100) : 0);
+    })));
+  }
+  const cfg = {
+    type:'radar',
+    data:{labels:labels, datasets:[
+      {label:'Excelencia', data:labels.map(()=>100), borderColor:'#BFA666', borderWidth:1.5, borderDash:[5,4], pointRadius:0, fill:false},
+      {label:'Excelencia alcanzada (%)', data:datos, borderColor:'#980000', backgroundColor:'rgba(155,22,9,.22)', borderWidth:2, pointBackgroundColor:'#9B1609', pointRadius:3}
+    ]},
+    options:{responsive:true, maintainAspectRatio:false, animation:false,
+      devicePixelRatio:Math.max(2, window.devicePixelRatio || 1),
+      scales:{r:{min:0, max:100, ticks:{stepSize:20, backdropColor:'transparent', font:{size:9}}, pointLabels:{font:{size:10}}, grid:{color:'#E0D8C9'}, angleLines:{color:'#E0D8C9'}}},
+      plugins:{legend:{labels:{boxWidth:12, padding:14}}, tooltip:{backgroundColor:'#1F1B18', callbacks:{label:c => c.dataset.label+': '+c.formattedValue+' %'}}}}
+  };
+  if(chartRadar) chartRadar.destroy();
+  chartRadar = new Chart(document.getElementById('radar'), cfg);
+
+  const lb = [], alc = [], br = [];
+  MODELO.forEach(c => c.criterios.forEach(cr => {
+    const d = a.porCriterio[cr.id];
+    lb.push(String(cr.num)); alc.push(r(d.pts)); br.push(r(d.base - d.pts));
+  }));
+  if(chartBarras) chartBarras.destroy();
+  chartBarras = new Chart(document.getElementById('barras'), {
+    type:'bar',
+    data:{labels:lb, datasets:[
+      {label:'Alcanzado', data:alc, backgroundColor:'#9B1609'},
+      {label:'Brecha', data:br, backgroundColor:'#FFCFC3'}
+    ]},
+    options:{responsive:true, maintainAspectRatio:false, animation:false,
+      devicePixelRatio:Math.max(2, window.devicePixelRatio || 1),
+      scales:{x:{stacked:true, grid:{display:false}, title:{display:true, text:'Criterio'}}, y:{stacked:true, grid:{color:'#E9E3D8'}, title:{display:true, text:'Puntos'}}},
+      plugins:{legend:{labels:{boxWidth:12}}, tooltip:{backgroundColor:'#1F1B18'}}}
+  });
+}
+function cortar(s, n){ return s.length > n ? s.slice(0, n-1)+'…' : s; }
+
+function pintarOM(){
+  const tbAct = document.getElementById('tblOM');
+  if(tbAct && tbAct.contains(document.activeElement)){ omDiferido = true; return; }
+  omDiferido = false;
+  const filas = PREGUNTAS.map(p => {
+    const e = estado.resp[p.n] || {};
+    const s = puntajePreg(p);
+    return {p:p, om:(e.om||'').trim(), impacto: s.na ? 0 : r(p.peso - s.pts), e:e};
+  }).filter(f => f.om.length > 0);
+  filas.sort((x,y) => y.impacto - x.impacto);
+  const tb = document.getElementById('tblOM');
+  if(!filas.length){
+    tb.innerHTML = '';
+    document.getElementById('omVacio').textContent = 'Todavía no se cargaron oportunidades de mejora. Se completan en el campo correspondiente de cada pregunta y aparecen acá automáticamente.';
+    return;
+  }
+  document.getElementById('omVacio').textContent = 'Se listan '+filas.length+' oportunidades de mejora, ordenadas por los puntos que quedan disponibles en cada pregunta.';
+  tb.innerHTML = filas.map(f => {
+    const n = f.p.n;
+    const prio = f.e.prio || '';
+    return '<tr><td class="num">'+n+'</td><td>'+f.p.crNum+f.p.facLetra+' '+cortar(f.p.facNom, 40)+'</td><td>'+escapar(f.om)+'</td>'
+      + '<td class="num">'+fmt(f.impacto)+'</td>'
+      + '<td><select'+(soloLectura?' disabled':'')+' onchange="setMeta('+n+',\'prio\',this.value)">'
+      + ['','Alta','Media','Baja'].map(o => '<option value="'+o+'"'+(prio===o?' selected':'')+'>'+(o||'sin asignar')+'</option>').join('')
+      + '</select></td>'
+      + '<td><input type="text"'+(soloLectura?' disabled':'')+' value="'+escapar(f.e.resp||'')+'" oninput="setMeta('+n+',\'resp\',this.value)"></td>'
+      + '<td><input type="text"'+(soloLectura?' disabled':'')+' value="'+escapar(f.e.plazo||'')+'" oninput="setMeta('+n+',\'plazo\',this.value)" placeholder="mes y año"></td></tr>';
+  }).join('');
+}
+function escapar(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function cabeceraImpresion(){
+  const o = estado.org || {};
+  const partes = [o.org_nombre, o.org_juris, o.org_periodo ? 'Período '+o.org_periodo : '',
+                  o.org_fecha ? 'Autoevaluación del '+fechaLarga(o.org_fecha) : ''].filter(x => String(x || '').trim());
+  document.getElementById('printCabecera').textContent = partes.join(' · ');
+}
+
+/* ---------- persistencia ---------- */
+/* Publicado con Google Apps Script, el estado vive en una planilla de Drive: una fila
+   por campo (org/<campo> y resp/<n>-<campo>). Cada cambio se envía en segundos y cada
+   pantalla consulta la planilla cada dos segundos para traer lo que cargaron las demás.
+   Abierto como archivo suelto, sin Google, se usa el navegador como antes. */
+let db = false;                // true cuando el tablero está conectado a la planilla del grupo
+let soloLectura = false;
+let sesion = null;             // {clave, nombre, id}
+let desde = 0;                 // última versión de la planilla ya aplicada
+let enVuelo = null, sondeando = false, detenido = false, fallos = 0;
+let campoFoco = '';
+const sucios = new Set();      // campos con una edición local todavía sin confirmar
+const pendienteValor = {};     // campo -> último valor a enviar
+const listoEn = {};            // campo -> momento a partir del cual se envía
+const ultimaEscritura = {};    // campo -> versión de la planilla en que quedó nuestra escritura
+const CAMPOS_RESP = ['nivel','ev','om','na','prio','resp','plazo'];
+const SESION_KEY = 'autoeval_sesion_grupo';
+
+function hayGoogle(){ return typeof google !== 'undefined' && google.script && google.script.run; }
+function llamar(fn){
+  const args = Array.prototype.slice.call(arguments, 1);
+  return new Promise((res, rej) => {
+    const run = google.script.run.withSuccessHandler(res).withFailureHandler(rej);
+    run[fn].apply(run, args);
+  });
+}
+function espera(ms){ return new Promise(r => setTimeout(r, ms)); }
+function errorDe(err){ return String((err && err.message) || err || ''); }
+
+function persistir(col, id, v, demora){
+  if(!db){ guardar(); return; }
+  const k = col + '/' + id;
+  sucios.add(k);
+  pendienteValor[k] = (v === undefined) ? null : v;
+  listoEn[k] = Date.now() + (demora || 0);
+  programarEnvio(demora || 0);
+}
+
+function programarEnvio(ms){
+  clearTimeout(window._tenv);
+  window._tenv = setTimeout(enviar, Math.max(ms, 40));
+}
+
+async function enviar(){
+  if(enVuelo || detenido) return;
+  const ahora = Date.now();
+  const claves = Object.keys(pendienteValor);
+  const lote = claves.filter(k => listoEn[k] <= ahora);
+  if(!lote.length){
+    if(claves.length) programarEnvio(Math.min.apply(null, claves.map(k => listoEn[k])) - ahora);
+    return;
+  }
+  const items = lote.map(k => ({k:k, v:pendienteValor[k]}));
+  lote.forEach(k => delete pendienteValor[k]);
+  estadoSync('guardando…', 'trabajando');
+  enVuelo = (async () => {
+    for(let intento = 0; ; intento++){
+      try{
+        const r = await llamar('escribir', sesion.clave, items);
+        items.forEach(it => { ultimaEscritura[it.k] = r.rev; });
+        return true;
+      }catch(err){
+        if(errorDe(err).indexOf('CLAVE') >= 0){ pedirAcceso('La clave del grupo cambió. Vuelva a ingresarla.'); return false; }
+        if(intento < 2){ await espera(1000 * (intento + 1)); continue; }
+        /* sin conexión: lo no enviado vuelve a la cola, salvo que ya haya un valor más nuevo */
+        items.forEach(it => { if(!(it.k in pendienteValor)){ pendienteValor[it.k] = it.v; listoEn[it.k] = Date.now() + 5000; } });
+        estadoSync('sin conexión: los cambios se reintentan solos', 'error');
+        return false;
+      }
+    }
+  })();
+  const ok = await enVuelo;
+  enVuelo = null;
+  items.forEach(it => { if(!(it.k in pendienteValor)) sucios.delete(it.k); });
+  if(Object.keys(pendienteValor).length) programarEnvio(ok ? 40 : 5000);
+  else if(ok) estadoSync('guardado para todo el grupo', 'ok');
+  return ok;
+}
+
+/* espera a que no quede nada por enviar (abrir copia, borrar todo) */
+async function vaciarCola(){
+  for(let vueltas = 0; vueltas < 60; vueltas++){
+    if(!Object.keys(pendienteValor).length && !enVuelo) return true;
+    if(enVuelo) await enVuelo; else await enviar();
+    if(Object.keys(pendienteValor).length && !enVuelo) await espera(300);
+  }
+  return false;
+}
+
+function estadoSync(txt, cls){
+  const e = document.getElementById('estadoSync');
+  if(!e) return;
+  e.textContent = txt;
+  e.className = 'sync' + (cls ? ' ' + cls : '');
+}
+
+/* ---- cambios que llegan del resto del grupo ---- */
+function igual(a, b){
+  const na = (a === undefined || a === null || a === '' || a === false);
+  const nb = (b === undefined || b === null || b === '' || b === false);
+  return (na && nb) || a === b;
+}
+
+function aplicarOrg(id, v){
+  if(CAMPOS_ORG.indexOf(id) < 0 || igual(estado.org[id], v)) return false;
+  estado.org[id] = (v === undefined || v === null) ? '' : String(v);
+  const el = document.getElementById(id);
+  if(el){ el.value = estado.org[id]; if(el.tagName === 'TEXTAREA') autoAlto(el); }
+  return true;
+}
+
+function aplicarResp(id, v){
+  const m = /^(\d+)-([a-z]+)$/.exec(id);
+  if(!m) return false;
+  const n = Number(m[1]), campo = m[2];
+  if(!PREGUNTAS.some(p => p.n === n) || CAMPOS_RESP.indexOf(campo) < 0) return false;
+  const e = rp(n);
+  if(igual(e[campo], v)) return false;
+  if(v === undefined || v === null) delete e[campo]; else e[campo] = v;
+  if(campo === 'nivel'){
+    document.querySelectorAll('input[name="q'+n+'"]').forEach(r => r.checked = (String(e.nivel) === r.value));
+    marcarNivel(n);
+  }else if(campo === 'na'){
+    pintarNA(n);
+  }else if(campo === 'ev' || campo === 'om'){
+    const el = document.getElementById(campo+'-'+n);
+    if(el){ el.value = e[campo] || ''; autoAlto(el); }
+  }
+  return true;
+}
+
+function refrescoDiferido(){
+  clearTimeout(window._trf);
+  window._trf = setTimeout(() => { recalcular(); marcarOMdirty(); }, 150);
+}
+
+function aplicarCambios(r){
+  if(r.rev < desde){ desde = 0; return; }   // la planilla se reinició: la próxima consulta trae todo
+  let cambio = false;
+  (r.cambios || []).forEach(c => {
+    const k = String(c.k);
+    if(sucios.has(k)) return;                          // lo que una está escribiendo manda
+    if((ultimaEscritura[k] || 0) > r.rev) return;      // respuesta vieja, anterior a nuestro envío
+    const i = k.indexOf('/');
+    const col = k.slice(0, i), id = k.slice(i + 1);
+    if(col === 'org') cambio = aplicarOrg(id, c.v) || cambio;
+    else if(col === 'resp') cambio = aplicarResp(id, c.v) || cambio;
+  });
+  desde = r.rev;
+  if(cambio) refrescoDiferido();
+}
+
+async function sondear(){
+  clearTimeout(window._tson);
+  if(!db || detenido) return;
+  if(document.hidden){ window._tson = setTimeout(sondear, 8000); return; }
+  if(sondeando) return;
+  sondeando = true;
+  try{
+    const r = await llamar('leer', sesion.clave, desde, {id:sesion.id, nombre:sesion.nombre, campo:campoFoco});
+    aplicarCambios(r);
+    pintarPresencia(r.presentes || []);
+    fallos = 0;
+    if(!Object.keys(pendienteValor).length && !enVuelo) estadoSync('en vivo con el grupo', 'ok');
+  }catch(err){
+    if(errorDe(err).indexOf('CLAVE') >= 0){ pedirAcceso('La clave del grupo cambió. Vuelva a ingresarla.'); return; }
+    fallos++;
+    estadoSync('reconectando…', 'error');
+  }finally{
+    sondeando = false;
+  }
+  if(!detenido) window._tson = setTimeout(sondear, fallos ? Math.min(15000, 2000 * fallos) : 2000);
+}
+document.addEventListener('visibilitychange', () => { if(!document.hidden && db) sondear(); });
+
+/* ---- quién está conectada y dónde escribe ---- */
+const COLORES_PRES = ['#2C67AA', '#3F6B32', '#8A3F16', '#6B3FA0', '#00796B', '#B0306A'];
+function colorDe(nombre){
+  let h = 0;
+  for(const ch of String(nombre)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return COLORES_PRES[h % COLORES_PRES.length];
+}
+let presenciaPrevia = '';
+function pintarPresencia(lista){
+  const firma = JSON.stringify(lista);
+  if(firma === presenciaPrevia) return;
+  presenciaPrevia = firma;
+  const cont = document.getElementById('presentes');
+  cont.textContent = '';
+  if(lista.length){
+    const t = document.createElement('span');
+    t.textContent = 'También conectadas:';
+    cont.appendChild(t);
+    lista.forEach(p => {
+      const c = document.createElement('span');
+      c.className = 'pres-chip';
+      c.style.background = colorDe(p.nombre);
+      c.textContent = p.nombre || 'Sin nombre';
+      cont.appendChild(c);
+    });
+  }
+  document.querySelectorAll('.pres-tag').forEach(e => e.remove());
+  document.querySelectorAll('.pres-campo').forEach(e => { e.classList.remove('pres-campo'); e.style.removeProperty('--pres'); });
+  lista.forEach(p => {
+    if(!p.campo) return;
+    const el = document.getElementById(p.campo);
+    if(!el || !el.parentNode) return;
+    const tag = document.createElement('span');
+    tag.className = 'pres-tag';
+    tag.style.background = colorDe(p.nombre);
+    tag.textContent = (p.nombre || 'Alguien') + ' está acá';
+    el.parentNode.insertBefore(tag, el);
+    el.classList.add('pres-campo');
+    el.style.setProperty('--pres', colorDe(p.nombre));
+  });
+}
+document.addEventListener('focusin', e => {
+  const t = e.target;
+  if(!t || !t.closest) return;
+  const campo = t.id && t.id !== 'accesoNombre' && t.id !== 'accesoClave' ? t.id : ((t.closest('.preg') || {}).id || '');
+  campoFoco = campo;
+});
+document.addEventListener('focusout', () => { campoFoco = ''; });
+
+/* ---- ingreso con nombre y clave del grupo ---- */
+function leerSesion(){
+  try{ const s = JSON.parse(localStorage.getItem(SESION_KEY) || 'null'); if(s && s.clave && s.nombre && s.id) return s; }catch(err){}
+  return null;
+}
+function guardarSesion(s){ try{ localStorage.setItem(SESION_KEY, JSON.stringify(s)); }catch(err){} }
+
+function pedirAcceso(msg){
+  db = false; detenido = true;
+  clearTimeout(window._tson);
+  estadoSync('desconectado', 'error');
+  const f = document.getElementById('acceso');
+  f.hidden = false;
+  document.getElementById('accesoMsg').textContent = msg || '';
+  const previo = leerSesion();
+  if(previo) document.getElementById('accesoNombre').value = previo.nombre;
+  document.getElementById(document.getElementById('accesoNombre').value ? 'accesoClave' : 'accesoNombre').focus();
+}
+
+async function entrar(ev){
+  ev.preventDefault();
+  const nombre = document.getElementById('accesoNombre').value.trim();
+  const clave = document.getElementById('accesoClave').value.trim();
+  const msg = document.getElementById('accesoMsg');
+  if(!nombre || !clave){ msg.textContent = 'Complete su nombre y la clave del grupo.'; return; }
+  const btn = document.getElementById('accesoBtn');
+  btn.disabled = true; msg.textContent = 'Verificando…';
+  try{
+    await llamar('comprobarClave', clave);
+    const previo = leerSesion();
+    const id = (previo && previo.id) || ('u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
+    sesion = {clave:clave, nombre:nombre.slice(0, 40), id:id};
+    guardarSesion(sesion);
+    document.getElementById('acceso').hidden = true;
+    conectar();
+  }catch(err){
+    const e = errorDe(err);
+    msg.textContent = e.indexOf('SIN_CONFIGURAR') >= 0 ? 'Falta escribir la clave del grupo en el archivo Codigo.gs (línea CLAVE_GRUPO).'
+                    : e.indexOf('CLAVE') >= 0 ? 'La clave no es correcta.'
+                    : 'No se pudo conectar. Revise la conexión y pruebe de nuevo.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function conectar(){
+  db = true; detenido = false;
+  document.getElementById('quienSoy').textContent = 'Usted es ' + sesion.nombre + ' · ';
+  estadoSync('trayendo lo cargado por el grupo…', 'trabajando');
+  sondear();
+}
+
+function cambiarNombre(){
+  pedirAcceso('');
+}
+
+/* ---- arranque ---- */
+async function iniciar(){
+  if(!hayGoogle()){ modoLocal(); cargar(); return; }
+  document.getElementById('acceso').querySelector('form').addEventListener('submit', entrar);
+  recalcular();
+  const s = leerSesion();
+  if(!s){ pedirAcceso(''); return; }
+  try{
+    await llamar('comprobarClave', s.clave);
+    sesion = s;
+    conectar();
+  }catch(err){
+    pedirAcceso(errorDe(err).indexOf('CLAVE') >= 0 ? 'La clave del grupo cambió. Vuelva a ingresarla.' : '');
+  }
+}
+
+function modoLocal(){
+  estadoSync('guardado solo en este navegador');
+  document.getElementById('notaGuardado').textContent = 'Lo que va cargando se guarda solo en este navegador. Para no depender de eso, use el botón de guardar copia de respaldo: descarga un archivo que después se vuelve a abrir desde este mismo tablero, en esta u otra computadora.';
+  document.getElementById('pieDatos').textContent = 'Los datos quedan en el navegador de quien completa el formulario y no se envían a ningún servidor.';
+}
+
+/* ---- modo local (archivo suelto) ---- */
+function guardar(){
+  clearTimeout(window._tsave);
+  window._tsave = setTimeout(guardarYa, 400);
+}
+function guardarYa(){
+  CAMPOS_ORG.forEach(c => { const el = document.getElementById(c); if(el) estado.org[c] = el.value; });
+  if(db) return;
+  try{
+    localStorage.setItem(KEY, JSON.stringify(estado));
+    const e = document.getElementById('estadoGuardado');
+    e.textContent = 'guardado en este navegador';
+    clearTimeout(window._tg); window._tg = setTimeout(() => e.textContent = '', 2500);
+  }catch(err){
+    document.getElementById('estadoGuardado').textContent = 'no se pudo guardar en este navegador: guarde una copia de respaldo antes de cerrar';
+  }
+}
+function cargar(){
+  let d = null;
+  try{ const raw = localStorage.getItem(KEY); if(raw) d = JSON.parse(raw); }catch(err){ d = null; }
+  if(d && typeof d === 'object') estado = {org:d.org||{}, resp:d.resp||{}};
+  aplicarEstado();
+}
+function aplicarEstado(){
+  CAMPOS_ORG.forEach(c => { const el = document.getElementById(c); if(el && estado.org[c] !== undefined) el.value = estado.org[c]; });
+  PREGUNTAS.forEach(p => {
+    const e = estado.resp[p.n]; if(!e) return;
+    if(e.nivel !== undefined && e.nivel !== null){
+      const rd = document.querySelector('input[name="q'+p.n+'"][value="'+e.nivel+'"]');
+      if(rd) rd.checked = true;
+      marcarNivel(p.n);
+    }
+    if(e.ev) document.getElementById('ev-'+p.n).value = e.ev;
+    if(e.om) document.getElementById('om-'+p.n).value = e.om;
+    if(e.na) pintarNA(p.n);
+  });
+  document.querySelectorAll('textarea').forEach(autoAlto);
+  recalcular();
+}
+
+/* deja la pantalla en blanco y pinta otro estado completo */
+function reiniciarVista(nuevo){
+  estado = nuevo;
+  document.querySelectorAll('input[type=radio]').forEach(r => { r.checked = false; r.disabled = false; });
+  document.querySelectorAll('.chk-na input[type=checkbox]').forEach(c => c.checked = false);
+  document.querySelectorAll('.page-wrapper textarea, .page-wrapper input[type=text], .page-wrapper input[type=date]').forEach(t => t.value = '');
+  document.querySelectorAll('.preg').forEach(b => b.classList.remove('na', 'respondida', 'falta-nivel'));
+  document.querySelectorAll('.nivel.sel').forEach(l => l.classList.remove('sel'));
+  document.querySelectorAll('.falta').forEach(e => e.classList.remove('falta'));
+  aplicarEstado();
+  marcarOMdirty();
+}
+
+/* envía todas las diferencias entre dos estados en un solo lote */
+async function volcarEstadoCompleto(anterior, nuevo){
+  CAMPOS_ORG.forEach(c => {
+    const a = (anterior.org || {})[c], b = (nuevo.org || {})[c];
+    if(!igual(a, b)) persistir('org', c, b, 0);
+  });
+  PREGUNTAS.forEach(p => CAMPOS_RESP.forEach(c => {
+    const a = ((anterior.resp || {})[p.n] || {})[c], b = ((nuevo.resp || {})[p.n] || {})[c];
+    if(!igual(a, b)) persistir('resp', p.n + '-' + c, b, 0);
+  }));
+  return vaciarCola();
+}
+
+async function limpiar(){
+  const msg = db ? 'Se borran todas las respuestas cargadas, para todo el grupo. No se puede deshacer: si quiere conservarlas, guarde antes una copia de respaldo.'
+                 : 'Se borran todas las respuestas cargadas en este navegador.';
+  if(!await confirmar(msg + ' ¿Continuar?', 'Borrar todo')) return;
+  const anterior = estado;
+  reiniciarVista({org:{}, resp:{}});
+  if(db){
+    aviso('borrando…', 60000);
+    const ok = await volcarEstadoCompleto(anterior, estado);
+    aviso(ok ? 'se borró todo el contenido' : 'algunos campos no se pudieron borrar', 5000);
+  }else{
+    try{ localStorage.removeItem(KEY); }catch(err){}
+  }
+}
+
+/* ---- diálogos propios ---- */
+function dialogo(msg, botones){
+  return new Promise(res => {
+    const fondo = document.createElement('div');
+    fondo.className = 'dlg-fondo';
+    const caja = document.createElement('div');
+    caja.className = 'dlg';
+    caja.setAttribute('role', 'dialog');
+    caja.setAttribute('aria-modal', 'true');
+    const p = document.createElement('p');
+    p.textContent = msg;
+    const barra = document.createElement('div');
+    barra.className = 'toolbar';
+    const cerrar = v => { document.removeEventListener('keydown', tecla); fondo.remove(); res(v); };
+    const tecla = e => { if(e.key === 'Escape') cerrar(false); };
+    botones.forEach(b => {
+      const el = document.createElement('button');
+      el.className = 'btn' + (b.cls ? ' ' + b.cls : '');
+      el.textContent = b.txt;
+      el.onclick = () => cerrar(b.v);
+      barra.appendChild(el);
+    });
+    caja.appendChild(p); caja.appendChild(barra); fondo.appendChild(caja);
+    document.body.appendChild(fondo);
+    document.addEventListener('keydown', tecla);
+    barra.lastChild.focus();
+  });
+}
+function avisar(msg){ return dialogo(msg, [{txt:'Entendido', v:true}]); }
+function confirmar(msg, txtSi){ return dialogo(msg, [{txt:'Cancelar', v:false, cls:'ghost'}, {txt:txtSi || 'Continuar', v:true, cls:'danger'}]); }
+
+/* ---------- completitud ---------- */
+const ETIQUETAS_ORG = {
+  org_nombre:'Organización evaluada', org_tipo:'Tipo y dependencia', org_juris:'Jurisdicción o localidad',
+  org_periodo:'Período evaluado', org_fecha:'Fecha de la autoevaluación',
+  org_resp:'Responsable de la conducción', org_equipo:'Integrantes del equipo evaluador',
+  org_desc:'Descripción de la organización', org_alcance:'Alcance del ejercicio',
+  org_conclusiones:'Conclusiones del equipo evaluador'
+};
+const PANEL_ORG = {org_conclusiones:'p-resumen'};
+
+function faltantes(){
+  const out = [];
+  CAMPOS_ORG.forEach(c => {
+    const el = document.getElementById(c);
+    if(el && !String(el.value || '').trim())
+      out.push({el:el, panel:PANEL_ORG[c] || 'p-caratula', txt:ETIQUETAS_ORG[c] || c, tipo:'campo'});
+  });
+  PREGUNTAS.forEach(p => {
+    const e = estado.resp[p.n] || {};
+    const pan = 'p-' + p.crId;
+    const ev = document.getElementById('ev-' + p.n);
+    const om = document.getElementById('om-' + p.n);
+    if(e.na){
+      if(!String(e.ev || '').trim())
+        out.push({el:ev, panel:pan, txt:'Pregunta ' + p.n + ': motivo por el que no aplica', tipo:'campo'});
+      return;
+    }
+    if(e.nivel === undefined || e.nivel === null)
+      out.push({el:document.getElementById('preg-' + p.n), panel:pan, txt:'Pregunta ' + p.n + ': nivel de implementación', tipo:'nivel', n:p.n});
+    if(!String(e.ev || '').trim())
+      out.push({el:ev, panel:pan, txt:'Pregunta ' + p.n + ': datos y evidencias', tipo:'campo'});
+    if(!String(e.om || '').trim())
+      out.push({el:om, panel:pan, txt:'Pregunta ' + p.n + ': oportunidad de mejora', tipo:'campo'});
+  });
+  return out;
+}
+
+function actualizarPendientes(){
+  const n = faltantes().length;
+  const el = document.getElementById('pendientes');
+  if(!el) return n;
+  el.classList.toggle('ok', n === 0);
+  el.textContent = n === 0 ? 'documento completo' : (n === 1 ? 'falta 1 campo obligatorio' : 'faltan ' + n + ' campos obligatorios');
+  return n;
+}
+
+function verificar(){
+  const f = faltantes();
+  document.querySelectorAll('.falta').forEach(e => e.classList.remove('falta'));
+  document.querySelectorAll('.falta-nivel').forEach(e => e.classList.remove('falta-nivel'));
+  f.forEach(x => {
+    if(!x.el) return;
+    if(x.tipo === 'nivel') x.el.classList.add('falta-nivel');
+    else x.el.classList.add('falta');
+  });
+  actualizarPendientes();
+  if(!f.length){ avisar('No quedan campos obligatorios sin completar.'); return true; }
+  const prim = f[0];
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  const paneles = Array.from(document.querySelectorAll('.panel'));
+  const idx = paneles.findIndex(pa => pa.id === prim.panel);
+  if(idx >= 0) mostrar(prim.panel, tabs[idx]);
+  setTimeout(() => {
+    if(prim.el && prim.el.scrollIntoView) prim.el.scrollIntoView({block:'center', behavior:'smooth'});
+    if(prim.el && prim.el.focus && prim.tipo === 'campo') prim.el.focus({preventScroll:true});
+  }, 350);
+  const cuantos = f.length === 1 ? 'Queda 1 campo obligatorio sin completar' : 'Quedan ' + f.length + ' campos obligatorios sin completar';
+  avisar(cuantos + '. El primero es: ' + prim.txt + '.\n\nQuedan resaltados en rojo en todas las secciones.');
+  return false;
+}
+
+/* ---------- archivos que genera el tablero ---------- */
+function nombreBase(){
+  const o = estado.org || {};
+  const base = String(o.org_nombre || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
+  const d = new Date();
+  const hoy = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  return 'autoevaluacion-' + (base || 'calidad') + '-' + hoy;
+}
+function aviso(txt, ms){
+  const e = document.getElementById('estadoGuardado');
+  if(!e) return;
+  e.textContent = txt;
+  clearTimeout(window._tg);
+  window._tg = setTimeout(() => e.textContent = '', ms || 3000);
+}
+/* dos caminos: dentro del visor de artefactos la descarga la media la plataforma;
+   en el archivo HTML suelto, el enlace directo del navegador */
+let capDescargasCache;
+async function capDescargas(){
+  if(capDescargasCache !== undefined) return capDescargasCache;
+  capDescargasCache = null;
+  try{
+    if(window.claude && typeof window.claude.use === 'function'){
+      capDescargasCache = await window.claude.use('downloads');
+    }
+  }catch(err){ capDescargasCache = null; }
+  return capDescargasCache;
+}
+function entregaNavegador(nombre, blob){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  aviso('archivo descargado: ' + nombre, 5000);
+  return true;
+}
+async function entregarArchivo(nombre, datos, mime){
+  const blob = (datos instanceof Blob) ? datos : new Blob([datos], {type: mime || 'application/octet-stream'});
+  const enVisor = !!(window.claude && typeof window.claude.use === 'function');
+  const cap = await capDescargas();
+  if(cap && typeof cap.save === 'function'){
+    try{
+      const res = await cap.save({filename:nombre, data:blob});
+      aviso(res && res.status === 'delivered' ? 'archivo entregado' : 'archivo guardado: ' + nombre, 5000);
+      return true;
+    }catch(err){
+      const cod = err && err.code;
+      if(cod === 'declined'){ aviso('descarga cancelada', 3000); return false; }
+      if(cod === 'rate_limited'){ aviso('hay otra descarga en curso, intente de nuevo', 4000); return false; }
+      if(enVisor){ avisar('Esta vista no permitió guardar el archivo. Pruebe de nuevo desde el navegador de una computadora.'); return false; }
+      return entregaNavegador(nombre, blob);
+    }
+  }
+  if(enVisor){
+    avisar('La descarga no está disponible en esta vista. Pruebe de nuevo desde el navegador de una computadora.');
+    return false;
+  }
+  return entregaNavegador(nombre, blob);
+}
+
+async function guardarCopia(){
+  clearTimeout(window._tsave); guardarYa();
+  marcarFaltantes();
+  let texto;
+  try{ texto = JSON.stringify(estado, null, 2); }
+  catch(err){ avisar('No se pudo preparar la copia de respaldo.'); return; }
+  await entregarArchivo(nombreBase() + '.json', texto, 'application/json');
+}
+
+/* ---------- exportación a Excel ---------- */
+function nombreNivel(p, e){
+  if(e && e.na) return 'No aplica';
+  if(!e || e.nivel === undefined || e.nivel === null) return 'Sin responder';
+  const esc = (p.tipo === 'resultados') ? NIVELES_RESULTADOS : NIVELES_ENFOQUE;
+  return esc[e.nivel].nom;
+}
+
+function datosExportacion(){
+  const a = agregados();
+  const o = estado.org || {};
+  const pct = a.base > 0 ? a.tot / a.base * 100 : 0;
+  const escala1000 = a.base > 0 ? a.tot / a.base * 1000 : 0;
+  const banda = BANDAS.find(b => escala1000 >= b.min && escala1000 <= b.max) || BANDAS[0];
+  const pend = faltantes().length;
+
+  const caratula = [
+    ['Autoevaluación de la gestión de calidad en organizaciones de salud'],
+    ['Modelo del Premio Nacional a la Calidad actualizado 2026 · Micromaestría en Gestión de Salud · FCE UNCuyo'],
+    [],
+    ['Identificación'],
+    ['Organización evaluada', o.org_nombre || ''],
+    ['Tipo y dependencia', o.org_tipo || ''],
+    ['Jurisdicción o localidad', o.org_juris || ''],
+    ['Período evaluado', o.org_periodo || ''],
+    ['Fecha de la autoevaluación', fechaLarga(o.org_fecha || '')],
+    ['Responsable de la conducción', o.org_resp || ''],
+    ['Integrantes del equipo evaluador', o.org_equipo || ''],
+    ['Descripción de la organización', o.org_desc || ''],
+    ['Alcance del ejercicio', o.org_alcance || ''],
+    [],
+    ['Resultado'],
+    ['Puntaje alcanzado', r(a.tot)],
+    ['Puntos aplicables', a.base],
+    ['Excelencia alcanzada (%)', Math.round(pct * 10) / 10],
+    ['Puntaje en la escala de 1.000', Math.round(escala1000)],
+    ['Grado de implementación', gradoDe(pct).nom],
+    ['Posición de la organización', banda.txt],
+    ['Preguntas respondidas', a.resp],
+    ['Preguntas marcadas como no aplica', a.na],
+    ['Campos obligatorios sin completar', pend],
+    [],
+    ['Conclusiones del equipo evaluador', o.org_conclusiones || ''],
+    [],
+    ['Exportado el', new Date().toLocaleString('es-AR')]
+  ];
+
+  const respuestas = [['N°','Componente','Criterio','Factor','Pregunta','Marco de referencia',
+                       'Peso (puntos)','Nivel elegido','% del nivel','Puntaje asignado','No aplica',
+                       'Datos y evidencias','Oportunidad de mejora']];
+  PREGUNTAS.forEach(p => {
+    const e = estado.resp[p.n] || {};
+    const sc = puntajePreg(p);
+    const porc = (e.na || e.nivel === undefined || e.nivel === null) ? '' : FACTORES_NIVEL[e.nivel] * 100;
+    respuestas.push([p.n, p.compNom, p.crNum + '. ' + p.crNom, p.facLetra + ') ' + p.facNom,
+                     p.texto, p.ref, p.peso, nombreNivel(p, e), porc,
+                     e.na ? '' : r(sc.pts), e.na ? 'Sí' : 'No',
+                     e.ev || '', e.om || '']);
+  });
+
+  const resumen = [['Nivel','Componente','Denominación','Puntos alcanzados','Puntos aplicables',
+                    'Máximo del modelo','% alcanzado','Grado de implementación']];
+  MODELO.forEach(c => c.criterios.forEach(cr => {
+    const d = a.porCriterio[cr.id];
+    const pc = d.base > 0 ? d.pts / d.base * 100 : 0;
+    resumen.push(['Criterio', c.compNom, cr.num + '. ' + cr.nombre, r(d.pts), d.base, cr.puntos,
+                  Math.round(pc * 10) / 10, gradoDe(pc).nom]);
+    cr.factores.forEach(f => {
+      const df = a.porFactor[cr.id + '-' + f.letra];
+      const pf = df.base > 0 ? df.pts / df.base * 100 : 0;
+      resumen.push(['Factor', c.compNom, cr.num + f.letra + ') ' + f.nombre, r(df.pts), df.base, f.puntos,
+                    Math.round(pf * 10) / 10, gradoDe(pf).nom]);
+    });
+  }));
+  MODELO.forEach(c => {
+    const d = a.porComponente[c.compNom];
+    const pc = d.base > 0 ? d.pts / d.base * 100 : 0;
+    resumen.push(['Componente', c.compNom, c.compNom, r(d.pts), d.base, c.puntos,
+                  Math.round(pc * 10) / 10, gradoDe(pc).nom]);
+  });
+  resumen.push(['Total', '', 'Total del cuestionario', r(a.tot), a.base, 1000,
+                Math.round(pct * 10) / 10, gradoDe(pct).nom]);
+
+  const oport = [['N°','Criterio','Factor','Oportunidad de mejora','Impacto (puntos)','Prioridad','Responsable','Plazo']];
+  PREGUNTAS.map(p => {
+    const e = estado.resp[p.n] || {};
+    const sc = puntajePreg(p);
+    return {p:p, e:e, om:String(e.om || '').trim(), impacto: e.na ? 0 : r(p.peso - sc.pts)};
+  }).filter(x => x.om.length > 0)
+    .sort((x, y) => y.impacto - x.impacto)
+    .forEach(x => oport.push([x.p.n, x.p.crNum + '. ' + x.p.crNom, x.p.facLetra + ') ' + x.p.facNom,
+                              x.om, x.impacto, x.e.prio || '', x.e.resp || '', x.e.plazo || '']));
+
+  const telarana = [['Nivel de agregación','Eje','% alcanzado','Excelencia (%)','Brecha (puntos)']];
+  MODELO.forEach(c => c.criterios.forEach(cr => {
+    const d = a.porCriterio[cr.id];
+    telarana.push(['Criterio', cr.num + '. ' + cr.nombre,
+                   d.base > 0 ? Math.round(d.pts / d.base * 1000) / 10 : 0, 100, r(d.base - d.pts)]);
+  }));
+  MODELO.forEach(c => c.criterios.forEach(cr => cr.factores.forEach(f => {
+    const df = a.porFactor[cr.id + '-' + f.letra];
+    telarana.push(['Factor', cr.num + f.letra + ') ' + f.nombre,
+                   df.base > 0 ? Math.round(df.pts / df.base * 1000) / 10 : 0, 100, r(df.base - df.pts)]);
+  })));
+
+  return {caratula, respuestas, resumen, oport, telarana};
+}
+
+function anchos(ws, cols){ ws['!cols'] = cols.map(w => ({wch:w})); return ws; }
+
+async function exportarExcel(){
+  clearTimeout(window._tsave); guardarYa();
+  marcarFaltantes();
+  const d = datosExportacion();
+
+  if(typeof XLSX === 'undefined'){
+    /* sin la biblioteca (por ejemplo, sin conexión) se entrega el mismo contenido en CSV */
+    const sep = [[]];
+    const filas = [['AUTOEVALUACIÓN DE LA GESTIÓN DE CALIDAD']].concat(
+      d.caratula, sep, [['RESPUESTAS']], d.respuestas, sep,
+      [['RESUMEN POR COMPONENTE, CRITERIO Y FACTOR']], d.resumen, sep,
+      [['OPORTUNIDADES DE MEJORA']], d.oport, sep,
+      [['TELARAÑA']], d.telarana);
+    const csv = filas.map(f => (f || []).map(v => {
+      const t = (v === undefined || v === null) ? '' : String(v);
+      return /[";\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+    }).join(';')).join('\r\n');
+    await entregarArchivo(nombreBase() + '.csv', '﻿' + csv, 'text/csv;charset=utf-8');
+    aviso('no se pudo cargar el generador de Excel: se exportó en CSV', 6000);
+    return;
+  }
+
+  try{
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, anchos(XLSX.utils.aoa_to_sheet(d.caratula), [34, 70]), 'Carátula');
+    XLSX.utils.book_append_sheet(wb, anchos(XLSX.utils.aoa_to_sheet(d.respuestas),
+      [5, 18, 26, 30, 62, 30, 11, 20, 9, 12, 9, 50, 50]), 'Respuestas');
+    XLSX.utils.book_append_sheet(wb, anchos(XLSX.utils.aoa_to_sheet(d.resumen),
+      [11, 18, 46, 14, 14, 14, 11, 26]), 'Resumen');
+    XLSX.utils.book_append_sheet(wb, anchos(XLSX.utils.aoa_to_sheet(d.oport),
+      [5, 30, 34, 60, 14, 11, 22, 14]), 'Oportunidades');
+    XLSX.utils.book_append_sheet(wb, anchos(XLSX.utils.aoa_to_sheet(d.telarana),
+      [16, 46, 12, 13, 14]), 'Telaraña');
+    const buf = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    await entregarArchivo(nombreBase() + '.xlsx', new Blob([buf],
+      {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  }catch(err){
+    avisar('No se pudo generar el archivo de Excel: ' + (err && err.message ? err.message : 'error desconocido'));
+  }
+}
+
+async function abrirCopia(input){
+  const f = input.files && input.files[0];
+  if(!f){ return; }
+  if(soloLectura){ input.value = ''; return; }
+  let texto;
+  try{ texto = await f.text(); }catch(err){ input.value = ''; avisar('No se pudo leer el archivo.'); return; }
+  input.value = '';
+  let d;
+  try{
+    d = JSON.parse(texto);
+    if(!d || typeof d !== 'object' || (!d.org && !d.resp)) throw new Error('formato');
+  }catch(err){ avisar('El archivo no parece una copia de respaldo de este tablero.'); return; }
+  const hay = Object.keys(estado.resp || {}).length || Object.keys(estado.org || {}).some(k => String(estado.org[k] || '').trim());
+  if(hay){
+    const msg = db ? 'Se reemplaza todo lo cargado por el grupo con el contenido de la copia. Los cambios los ven todos los integrantes.'
+                   : 'Se reemplaza todo lo que está cargado ahora por el contenido de la copia.';
+    if(!await confirmar(msg + ' ¿Continuar?', 'Reemplazar')) return;
+  }
+  const nuevo = {org:d.org || {}, resp:d.resp || {}};
+  const anterior = estado;
+  reiniciarVista(nuevo);
+  if(db){
+    aviso('volcando la copia en la base del grupo…', 60000);
+    const ok = await volcarEstadoCompleto(anterior, nuevo);
+    aviso(ok ? 'copia abierta y compartida: ' + f.name : 'la copia se abrió, pero algunos campos no se pudieron guardar', 6000);
+  }else{
+    clearTimeout(window._tsave); guardarYa();
+    aviso('copia abierta: ' + f.name, 5000);
+  }
+}
+
+/* ---------- impresión ---------- */
+function autoAlto(t){ if(!t) return; t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; }
+
+function fechaLarga(iso){
+  if(!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || '';
+  const pz = iso.split('-');
+  return pz[2] + '/' + pz[1] + '/' + pz[0];
+}
+
+/* vuelca el contenido de cada campo a un div, para que en papel se lea el texto y no la caja */
+function sembrarValores(){
+  document.querySelectorAll('textarea, input[type=text], input[type=date], select').forEach(el => {
+    if(el.type === 'file') return;
+    let d = el.nextElementSibling;
+    if(!d || !d.classList || !d.classList.contains('print-value')){
+      d = document.createElement('div');
+      d.className = 'print-value';
+      el.parentNode.insertBefore(d, el.nextSibling);
+    }
+    let v = String(el.value || '');
+    if(el.type === 'date') v = fechaLarga(v);
+    const vacio = !v.trim();
+    d.textContent = vacio ? '—' : v;
+    d.classList.toggle('vacio', vacio);
+  });
+}
+
+/* encabezado con la identificación de la organización al inicio de cada sección */
+function sembrarEncabezados(){
+  const o = estado.org || {};
+  const linea = [o.org_nombre, o.org_juris, o.org_periodo ? 'Período ' + o.org_periodo : '',
+                 o.org_fecha ? 'Autoevaluación del ' + fechaLarga(o.org_fecha) : '']
+                .filter(x => String(x || '').trim()).join(' · ');
+  document.querySelectorAll('.panel').forEach(pa => {
+    let h = pa.querySelector(':scope > .panel-print-head');
+    if(!h){
+      h = document.createElement('div');
+      h.className = 'panel-print-head';
+      pa.insertBefore(h, pa.firstChild);
+    }
+    h.textContent = linea || 'Autoevaluación de la gestión de calidad · organización sin identificar';
+  });
+}
+
+/* leyenda impresa del estado de cada pregunta */
+function sembrarEstados(){
+  PREGUNTAS.forEach(p => {
+    const e = estado.resp[p.n] || {};
+    const el = document.getElementById('ep-' + p.n);
+    if(!el) return;
+    if(e.na) el.textContent = 'No aplica a esta organización';
+    else if(e.nivel === undefined || e.nivel === null) el.textContent = 'Sin responder';
+    else el.textContent = '';
+  });
+}
+
+/* el canvas no sobrevive al cambio a medio impreso: se imprime una captura del gráfico */
+function congelarGraficos(){
+  const lista = [[chartRadar,'radar'], [chartBarras,'barras']];
+  Object.keys(chartsCriterio).forEach(k => lista.push([chartsCriterio[k], 'rc-' + k]));
+  lista.forEach(par => {
+    const ch = par[0];
+    const cv = document.getElementById(par[1]);
+    if(!cv) return;
+    let img = cv.nextElementSibling;
+    if(!img || !img.classList || !img.classList.contains('chart-print')){
+      img = document.createElement('img');
+      img.className = 'chart-print';
+      img.alt = '';
+      cv.parentNode.insertBefore(img, cv.nextSibling);
+    }
+    if(!ch){ img.removeAttribute('src'); return; }
+    /* se recaptura con una proporción pensada para la hoja, no para la pantalla */
+    const caja = cv.parentNode;
+    const ancho = caja.style.width, alto = caja.style.height;
+    const esRadar = (par[1] === 'radar') || (par[0].config && par[0].config.type === 'radar');
+    const medida = esRadar ? ['780px','580px'] : ['860px','380px'];
+    try{
+      caja.style.width = medida[0]; caja.style.height = medida[1];
+      ch.resize();
+      img.src = ch.toBase64Image('image/png', 1);
+    }catch(err){ img.removeAttribute('src'); }
+    finally{
+      caja.style.width = ancho; caja.style.height = alto;
+      try{ ch.resize(); }catch(e){}
+    }
+  });
+}
+
+function prepararImpresion(modo){
+  const soloSeccion = (modo === 'seccion');
+  document.body.classList.toggle('pr-seccion', soloSeccion);
+  const paneles = Array.from(document.querySelectorAll('.panel'));
+  paneles.forEach(pa => {
+    pa.style.display = 'block';
+    pa.classList.remove('pr-esta', 'pr-primera');
+  });
+  if(soloSeccion){
+    const act = document.getElementById(panelActivo) || paneles[0];
+    act.classList.add('pr-esta', 'pr-primera');
+  }else{
+    paneles[0].classList.add('pr-primera');
+  }
+  sembrarEncabezados();
+  sembrarEstados();
+  sembrarValores();
+  cabeceraImpresion();
+  document.querySelectorAll('textarea').forEach(autoAlto);
+  if(!soloSeccion || panelActivo === 'p-resumen') dibujarGraficos();
+  if(soloSeccion){
+    if(panelActivo.indexOf('p-cr') === 0) dibujarCriterio(panelActivo.slice(2));
+  }else{
+    MODELO.forEach(c => c.criterios.forEach(cr => dibujarCriterio(cr.id)));
+  }
+  congelarGraficos();
+}
+
+function restaurarVista(){
+  document.body.classList.remove('pr-seccion');
+  const paneles = Array.from(document.querySelectorAll('.panel'));
+  paneles.forEach(pa => { pa.style.display = 'none'; pa.classList.remove('pr-esta', 'pr-primera'); });
+  const act = document.getElementById(panelActivo) || paneles[0];
+  act.style.display = 'block';
+}
+
+/* imprime siempre, completo o no: lo que falte sale señalado como sin completar */
+function imprimir(modo){
+  marcarFaltantes();
+  prepararImpresion(modo);
+  setTimeout(() => window.print(), 300);
+}
+function marcarFaltantes(){
+  const f = faltantes();
+  document.querySelectorAll('.falta').forEach(e => e.classList.remove('falta'));
+  document.querySelectorAll('.falta-nivel').forEach(e => e.classList.remove('falta-nivel'));
+  f.forEach(x => { if(x.el) x.el.classList.add(x.tipo === 'nivel' ? 'falta-nivel' : 'falta'); });
+  actualizarPendientes();
+}
+window.addEventListener('beforeprint', () => prepararImpresion(document.body.classList.contains('pr-seccion') ? 'seccion' : 'todo'));
+window.addEventListener('afterprint', restaurarVista);
+
+/* ---------- arranque ---------- */
+construir();
+CAMPOS_ORG.forEach(c => {
+  const el = document.getElementById(c);
+  if(!el) return;
+  el.addEventListener('input', () => {
+    if(String(el.value || '').trim()) el.classList.remove('falta');
+    estado.org[c] = el.value;
+    persistir('org', c, el.value, 700); cabeceraImpresion(); actualizarPendientes();
+  });
+});
+document.addEventListener('input', e => { if(e.target.tagName === 'TEXTAREA') autoAlto(e.target); });
+document.getElementById('tblOM').addEventListener('focusout', () => setTimeout(() => { if(omDiferido) pintarOM(); }, 0));
+iniciar();
+</script>
+</body>
+</html>
