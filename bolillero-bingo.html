@@ -1,0 +1,943 @@
+<title>Bolillero de Bingo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
+<style>
+/* Paño de club: fondo verde azulado, bolillas rojas con disco marfil, botón dorado */
+:root{
+  --bg:#E6EEEC;
+  --bg-2:#D8E3E0;
+  --panel:#F7FAF9;
+  --line:#BCCEC9;
+  --ink:#0E2422;
+  --ink-2:#44605B;
+  --ink-3:#56706A;
+  --hole:#D3E0DC;
+  --hole-edge:#AFC4BE;
+  --hole-ink:#4D6964;
+  --drawn:#123F3A;
+  --drawn-ink:#F7F0DF;
+  --drawn-hi:rgba(255,255,255,.16);
+  --hot:#C8372D;
+  --hot-ink:#FFF7EE;
+  --err:#B3261E;
+  --gold:#F1B232;
+  --gold-lo:#C48A12;
+  --gold-ink:#231803;
+  --ivory:#FBF6EA;
+  --ivory-lo:#E2D5B8;
+  --ball-ink:#16110A;
+  --shadow:rgba(14,36,34,.24);
+  --scrim:rgba(8,24,22,.5);
+  --font-display:"Alfa Slab One","Rockwell Extra Bold",Rockwell,"Roboto Slab",Georgia,serif;
+  --font-ui:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D2626;
+    --bg-2:#0A1F1F;
+    --panel:#133333;
+    --line:#25494A;
+    --ink:#F2EDE1;
+    --ink-2:#A6C0BA;
+    --ink-3:#86A39C;
+    --hole:#081B1B;
+    --hole-edge:#021010;
+    --hole-ink:#6F9189;
+    --drawn:#F1E8D2;
+    --drawn-ink:#16110A;
+    --drawn-hi:rgba(255,255,255,.6);
+    --hot:#D2412E;
+    --hot-ink:#FFF7EE;
+    --err:#FF9A8B;
+    --shadow:rgba(0,0,0,.5);
+    --scrim:rgba(0,0,0,.62);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D2626;
+  --bg-2:#0A1F1F;
+  --panel:#133333;
+  --line:#25494A;
+  --ink:#F2EDE1;
+  --ink-2:#A6C0BA;
+  --ink-3:#86A39C;
+  --hole:#081B1B;
+  --hole-edge:#021010;
+  --hole-ink:#6F9189;
+  --drawn:#F1E8D2;
+  --drawn-ink:#16110A;
+  --drawn-hi:rgba(255,255,255,.6);
+  --hot:#D2412E;
+  --hot-ink:#FFF7EE;
+  --err:#FF9A8B;
+  --shadow:rgba(0,0,0,.5);
+  --scrim:rgba(0,0,0,.62);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font-family:var(--font-ui);font-size:16px;line-height:1.45;overflow-x:clip;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body.has-sheet{overflow:hidden}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation}
+button:disabled{cursor:default}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.eyebrow{margin:0;font-size:12px;font-weight:700;line-height:1.2;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+
+/* Estructura */
+.page{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:14px 116px;display:grid;gap:22px}
+.page > *{min-width:0}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px 12px;flex-wrap:wrap}
+.brand{display:grid;gap:4px;min-width:0}
+.brand h1{margin:0;font-family:var(--font-display);font-weight:400;font-size:27px;line-height:1;letter-spacing:.01em}
+.brand p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.top-actions{display:flex;gap:8px}
+.pill,.tool{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px 0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:14.5px;font-weight:600;line-height:1;white-space:nowrap}
+.pill svg,.tool svg{width:18px;height:18px;flex:none}
+.pill[aria-pressed="true"],.tool[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.pill .i-on,.tool .i-pause{display:none}
+.pill[aria-pressed="true"] .i-on,.tool[aria-pressed="true"] .i-pause{display:block}
+.pill[aria-pressed="true"] .i-off,.tool[aria-pressed="true"] .i-play{display:none}
+.tool:disabled{opacity:.45}
+@media (hover:hover){
+  .pill:hover,.tool:hover:not(:disabled),.chip:hover{border-color:var(--ink-3)}
+  .pill[aria-pressed="true"]:hover,.tool[aria-pressed="true"]:hover{border-color:var(--ink)}
+}
+
+/* Bolilla */
+.play{display:grid;gap:18px;align-content:start}
+.hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
+.ball,.slot{--b-hi:#F7977F;--b-mid:#D5402E;--b-lo:#861F14}
+[data-tone="B"]{--b-hi:#94B8F6;--b-mid:#2F6AD3;--b-lo:#173B7D}
+[data-tone="N"]{--b-hi:#FFFFFF;--b-mid:#E2D9C3;--b-lo:#9D9072}
+[data-tone="G"]{--b-hi:#8BD9A6;--b-mid:#2B9455;--b-lo:#155530}
+[data-tone="O"]{--b-hi:#FFCB8A;--b-mid:#EE8A22;--b-lo:#9C540B}
+.ball{
+  --size:clamp(132px,40vw,200px);
+  --num:.3;
+  position:relative;width:var(--size);height:var(--size);max-width:100%;
+  padding:0;border:0;border-radius:50%;
+  display:grid;place-items:center;
+  background:radial-gradient(circle at 34% 28%,var(--b-hi) 0%,var(--b-mid) 48%,var(--b-lo) 100%);
+  box-shadow:0 16px 26px -12px var(--shadow),inset -6px -10px 22px rgba(0,0,0,.22),inset 5px 7px 14px rgba(255,255,255,.2);
+  color:var(--ball-ink);
+}
+.ball-disc{
+  width:64%;height:64%;border-radius:50%;
+  display:grid;place-content:center;justify-items:center;gap:2px;
+  background:radial-gradient(circle at 40% 34%,#FFFEF9 0%,var(--ivory) 55%,var(--ivory-lo) 100%);
+  box-shadow:inset 0 -3px 6px rgba(60,40,10,.14),0 0 0 1px rgba(60,40,10,.08);
+}
+.ball-letter{font-size:calc(var(--size) * .085);font-weight:800;line-height:1;letter-spacing:.1em;margin-right:-.1em}
+.ball-num{font-family:var(--font-display);font-size:calc(var(--size) * var(--num));line-height:1;letter-spacing:-.01em}
+.ball.is-idle .ball-num{color:#8E826A}
+@media (hover:hover){.ball:not(:disabled):hover{filter:brightness(1.05)}}
+
+.stats{display:grid;gap:6px;align-content:center;min-width:0}
+.count{margin:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.count-n{font-family:var(--font-display);font-size:clamp(44px,13vw,62px);line-height:.95}
+.count-of{font-size:18px;font-weight:600;color:var(--ink-2)}
+.left{margin:0;font-size:15px;color:var(--ink-2)}
+.hint{margin:4px 0 0;font-size:13px;line-height:1.35;color:var(--ink-3);max-width:28ch}
+.hint b{font-weight:700;color:var(--ink-2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{height:36px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px;font-weight:600;line-height:1;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+
+/* Anteriores */
+.rack-wrap{display:grid;gap:8px}
+.rack{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,46px));gap:8px}
+.slot{aspect-ratio:1;border-radius:50%;border:1.5px dashed var(--line);display:grid;place-items:center}
+.slot.is-full{border:0;background:radial-gradient(circle at 34% 28%,var(--b-hi) 0%,var(--b-mid) 50%,var(--b-lo) 100%);box-shadow:0 4px 8px -4px var(--shadow)}
+.mini{width:66%;height:66%;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 40% 34%,#FFFEF9 0%,var(--ivory) 60%,var(--ivory-lo) 100%);color:var(--ball-ink);font-size:13px;font-weight:800;font-stretch:82%;line-height:1;font-variant-numeric:tabular-nums}
+
+/* Herramientas */
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.auto-group{display:inline-flex;align-items:stretch;border:1.5px solid var(--line);border-radius:999px;overflow:hidden}
+.auto-group .tool{border:0;border-radius:0;height:37px}
+.auto-group :focus-visible{outline-offset:-4px}
+.select{position:relative;display:inline-flex;border-left:1.5px solid var(--line)}
+.select select{appearance:none;-webkit-appearance:none;height:37px;padding:0 30px 0 12px;border:0;border-radius:0;background:transparent;color:var(--ink);font-size:14.5px;font-weight:600;cursor:pointer}
+.select::after{content:"";position:absolute;right:13px;top:50%;width:7px;height:7px;border-right:2px solid var(--ink-2);border-bottom:2px solid var(--ink-2);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+
+/* Botón principal: fijo abajo en el teléfono */
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--bg) 58%,transparent)}
+.draw{position:relative;overflow:hidden;width:100%;max-width:560px;min-height:64px;margin:0 auto;padding:10px 20px 12px;display:grid;place-items:center;gap:3px;border:0;border-radius:18px;background:var(--gold);color:var(--gold-ink);box-shadow:0 4px 0 var(--gold-lo),0 12px 24px -10px var(--shadow);transition:transform .08s ease,box-shadow .08s ease}
+.draw:active{transform:translateY(3px);box-shadow:0 1px 0 var(--gold-lo),0 6px 14px -8px var(--shadow)}
+.draw:focus-visible{outline-offset:5px}
+@media (hover:hover){.draw:hover{filter:brightness(1.04)}}
+.draw-label{font-family:var(--font-display);font-size:22px;line-height:1.05;letter-spacing:.01em}
+.draw-sub{font-size:12.5px;font-weight:600;line-height:1.2;opacity:.78}
+.draw-progress{position:absolute;left:0;bottom:0;width:100%;height:5px;background:var(--gold-ink);opacity:.5;transform:scaleX(0);transform-origin:left center;display:none}
+.draw[data-mode="auto"] .draw-progress{display:block}
+@media (hover:none),(pointer:coarse){.kbd-only{display:none}}
+
+/* Tablero */
+.board-wrap{display:grid;gap:14px;align-content:start}
+.board-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+.legend{list-style:none;margin:0;padding:0;display:flex;gap:14px;font-size:12.5px;color:var(--ink-2)}
+.legend li{display:inline-flex;align-items:center;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.dot-hole{background:var(--hole);box-shadow:inset 0 1px 2px var(--hole-edge)}
+.dot-out{background:var(--drawn)}
+.dot-hot{background:var(--hot)}
+.board{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;container-type:inline-size}
+.cell{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:var(--hole);color:var(--hole-ink);box-shadow:inset 0 2px 3px var(--hole-edge);font-size:14px;font-size:clamp(11px,3.7cqi,21px);font-weight:600;font-stretch:87.5%;font-variant-numeric:tabular-nums;line-height:1;user-select:none;-webkit-user-select:none}
+.cell.is-out{background:radial-gradient(circle at 35% 30%,var(--drawn-hi),transparent 62%),var(--drawn);color:var(--drawn-ink);box-shadow:0 2px 4px -1px var(--shadow);font-weight:800}
+.cell.is-last{background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.35),transparent 62%),var(--hot);color:var(--hot-ink);outline:2.5px solid var(--hot);outline-offset:2px}
+
+.order-wrap{display:grid;gap:10px;padding-top:16px;border-top:1.5px solid var(--line)}
+.order-wrap h3{font:inherit;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin:0}
+.order{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.order li{min-width:34px;height:28px;padding:0 8px;border-radius:999px;display:inline-grid;place-items:center;border:1px solid var(--line);background:var(--panel);color:var(--ink-2);font-size:13px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.order li.is-last{background:var(--hot);border-color:var(--hot);color:var(--hot-ink)}
+.empty,.note{margin:0;font-size:13px;line-height:1.45;color:var(--ink-3)}
+.note{max-width:62ch}
+
+/* Aviso */
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:12px;width:max-content;max-width:min(520px,calc(100% - 32px));padding:10px 12px 10px 16px;border-radius:14px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:500;line-height:1.35;box-shadow:0 12px 30px -10px var(--shadow);opacity:0;transform:translate(-50%,10px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+.toast.is-on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{flex:none;height:34px;padding:0 12px;border-radius:10px;border:0;background:var(--gold);color:var(--gold-ink);font-size:14px;font-weight:700}
+.toast :focus-visible{outline-color:var(--gold)}
+
+/* Hoja de juego nuevo */
+.scrim{position:fixed;inset:0;z-index:40;display:grid;align-items:end;justify-items:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--scrim)}
+.sheet{width:min(460px,100%);max-height:100%;overflow:auto;padding:22px 20px 20px;border-radius:22px;background:var(--panel);color:var(--ink);box-shadow:0 24px 60px -20px rgba(0,0,0,.55)}
+.sheet form{display:grid;gap:16px}
+.sheet h2{margin:0;font-family:var(--font-display);font-weight:400;font-size:24px;line-height:1.1;text-wrap:balance}
+.sheet-warn{margin:0;padding:10px 12px;border-radius:12px;background:var(--bg-2);font-size:14.5px;font-weight:600}
+.sheet fieldset{margin:0;padding:0;border:0;display:grid;gap:8px;min-width:0}
+.sheet legend{padding:0;margin-bottom:8px;font-size:14.5px;font-weight:700}
+.opt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);cursor:pointer}
+.opt:has(input[type="radio"]:checked){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.opt input[type="radio"]{width:20px;height:20px;margin:0;accent-color:var(--ink)}
+.opt b{display:block;font-size:16px}
+.opt small{display:block;margin-top:2px;font-size:13px;color:var(--ink-2)}
+.opt label{cursor:pointer}
+.custom-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:14.5px;color:var(--ink-2)}
+.custom-row input{width:84px;height:40px;padding:0 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);font-size:16px;font-weight:600}
+.err{margin:0;font-size:13.5px;font-weight:600;color:var(--err)}
+.sheet-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px}
+.btn{height:48px;padding:0 18px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:15px;font-weight:700}
+.btn-go{border-color:var(--gold);background:var(--gold);color:var(--gold-ink);box-shadow:0 3px 0 var(--gold-lo)}
+
+@media (max-width:479px){
+  .page{gap:18px}
+  .brand h1{font-size:24px}
+  .brand p{font-size:13px}
+  .top-actions{gap:6px}
+  .pill,.tool{gap:6px;padding:0 11px 0 10px;font-size:14px}
+  .select select{padding:0 27px 0 11px;font-size:14px}
+  .select::after{right:12px}
+}
+@media (min-width:600px){
+  .scrim{align-items:center}
+}
+@media (min-width:880px){
+  .page{grid-template-columns:minmax(320px,400px) minmax(0,1fr);column-gap:48px;row-gap:26px;align-items:start;padding-inline:32px;padding-block:24px 40px}
+  .top{grid-column:1 / -1}
+  .play{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px)}
+  .ball{--size:224px}
+  .actionbar{position:static;padding:0;background:none}
+  .draw{max-width:none}
+  .toast{bottom:24px}
+}
+@media (prefers-reduced-motion:reduce){
+  .draw,.toast{transition:none}
+}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="brand">
+      <h1>Bolillero</h1>
+      <p id="rangeLabel">Bingo del 1 al 90</p>
+    </div>
+    <div class="top-actions">
+      <button class="pill" id="voiceBtn" type="button" aria-pressed="true">
+        <svg class="i-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor" stroke="none"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.2 6.5a7.6 7.6 0 0 1 0 11"/></svg>
+        <svg class="i-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor" stroke="none"/><path d="m16 9.5 5 5m0-5-5 5"/></svg>
+        <span>Voz</span>
+      </button>
+      <button class="pill" id="newBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4.5V9h-4.5"/></svg>
+        <span>Juego nuevo</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="play" aria-label="Bolillero">
+    <div class="hero">
+      <button class="ball is-idle" id="ball" type="button" disabled aria-label="Todavía no salió ningún número">
+        <span class="ball-disc" aria-hidden="true">
+          <span class="ball-letter" id="ballLetter" hidden></span>
+          <span class="ball-num" id="ballNum">¿?</span>
+        </span>
+      </button>
+
+      <div class="stats" id="statsIdle">
+        <p class="eyebrow" id="chipsTitle">Cartones del</p>
+        <div class="chips" role="group" aria-labelledby="chipsTitle">
+          <button class="chip" type="button" data-max="90" aria-pressed="true">1 al 90</button>
+          <button class="chip" type="button" data-max="75" aria-pressed="false">1 al 75</button>
+          <button class="chip" type="button" data-max="otro" id="chipOther" aria-pressed="false">Otro…</button>
+        </div>
+        <p class="hint">Elegí hasta qué número llegan los cartones y tocá <b>Tirar número</b>.</p>
+      </div>
+
+      <div class="stats" id="statsLive" hidden>
+        <p class="eyebrow">Salieron</p>
+        <p class="count"><span class="count-n" id="countN">0</span> <span class="count-of">de <span id="countMax">90</span></span></p>
+        <p class="left" id="leftTxt">Quedan 90</p>
+        <p class="hint" id="repeatHint">Tocá la bolilla para escucharla otra vez.</p>
+      </div>
+    </div>
+
+    <div class="rack-wrap">
+      <p class="eyebrow" id="rackTitle">Anteriores</p>
+      <ol class="rack" id="rack" aria-labelledby="rackTitle"></ol>
+    </div>
+
+    <div class="tools">
+      <button class="tool" id="undoBtn" type="button" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        <span>Deshacer</span>
+      </button>
+      <div class="auto-group">
+        <button class="tool" id="autoBtn" type="button" aria-pressed="false">
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+          <span>Automático</span>
+        </button>
+        <span class="select">
+          <label class="sr-only" for="autoSec">Intervalo del modo automático</label>
+          <select id="autoSec">
+            <option value="5">5 s</option>
+            <option value="8" selected>8 s</option>
+            <option value="12">12 s</option>
+            <option value="20">20 s</option>
+          </select>
+        </span>
+      </div>
+    </div>
+
+    <div class="actionbar">
+      <button class="draw" id="drawBtn" type="button" data-mode="draw">
+        <span class="draw-label" id="drawLabel">Tirar número</span>
+        <span class="draw-sub kbd-only" id="drawSub">o la barra espaciadora</span>
+        <span class="draw-progress" id="drawProgress" aria-hidden="true"></span>
+      </button>
+    </div>
+  </section>
+
+  <section class="board-wrap" aria-labelledby="boardTitle">
+    <div class="board-head">
+      <h2 class="eyebrow" id="boardTitle">Tablero</h2>
+      <ul class="legend" aria-hidden="true">
+        <li><span class="dot dot-hole"></span>Falta</li>
+        <li><span class="dot dot-out"></span>Salió</li>
+        <li><span class="dot dot-hot"></span>Último</li>
+      </ul>
+    </div>
+    <ol class="board" id="board" aria-label="Tablero del 1 al 90"></ol>
+    <div class="order-wrap">
+      <h3>Orden de salida <span id="orderCount"></span></h3>
+      <ol class="order" id="order"></ol>
+      <p class="empty" id="orderEmpty">Todavía no salió ningún número.</p>
+    </div>
+    <p class="note">Los números salen al azar y no se repiten. El juego se guarda en este navegador: si se cierra la página, sigue donde quedó.</p>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span id="toastText"></span>
+  <button type="button" id="toastAction" hidden></button>
+</div>
+<p class="sr-only" id="live" aria-live="assertive"></p>
+
+<div class="scrim" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <form id="sheetForm" novalidate>
+      <h2 id="sheetTitle">¿Empezar otro juego?</h2>
+      <p class="sheet-warn" id="sheetWarn" hidden></p>
+      <fieldset>
+        <legend>¿Hasta qué número llegan los cartones?</legend>
+        <label class="opt" for="r90">
+          <input type="radio" name="range" id="r90" value="90">
+          <span><b>Del 1 al 90</b><small>Cartones de 3 filas y 9 columnas</small></span>
+        </label>
+        <label class="opt" for="r75">
+          <input type="radio" name="range" id="r75" value="75">
+          <span><b>Del 1 al 75</b><small>Cartones B-I-N-G-O de 5 × 5</small></span>
+        </label>
+        <div class="opt" id="optCustom">
+          <input type="radio" name="range" id="rOtro" value="otro">
+          <span>
+            <label for="rOtro"><b>Otro rango</b></label>
+            <span class="custom-row"><label for="customMax">Del 1 al</label><input type="number" id="customMax" inputmode="numeric" min="10" max="100" step="1" placeholder="50"></span>
+          </span>
+        </div>
+        <p class="err" id="customErr" hidden>Poné un número entre 10 y 100.</p>
+      </fieldset>
+      <div class="sheet-actions">
+        <button type="button" class="btn" id="sheetCancel">Cancelar</button>
+        <button type="submit" class="btn btn-go" id="sheetGo">Empezar juego nuevo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  document.documentElement.lang = "es";
+
+  const KEY = "bolillero-bingo:v1";
+  const SPEEDS = [5, 8, 12, 20];
+  const LETTERS = ["B", "I", "N", "G", "O"];
+  const DIGITS = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve"];
+  const RACK = 6;
+  const $ = (id) => document.getElementById(id);
+
+  const el = {
+    rangeLabel: $("rangeLabel"), voiceBtn: $("voiceBtn"), newBtn: $("newBtn"),
+    ball: $("ball"), ballLetter: $("ballLetter"), ballNum: $("ballNum"),
+    statsIdle: $("statsIdle"), statsLive: $("statsLive"),
+    chips: Array.from(document.querySelectorAll(".chip")), chipOther: $("chipOther"),
+    countN: $("countN"), countMax: $("countMax"), leftTxt: $("leftTxt"), repeatHint: $("repeatHint"),
+    rack: $("rack"), undoBtn: $("undoBtn"), autoBtn: $("autoBtn"), autoSec: $("autoSec"),
+    drawBtn: $("drawBtn"), drawLabel: $("drawLabel"), drawSub: $("drawSub"), drawProgress: $("drawProgress"),
+    board: $("board"), order: $("order"), orderCount: $("orderCount"), orderEmpty: $("orderEmpty"),
+    toast: $("toast"), toastText: $("toastText"), toastAction: $("toastAction"), live: $("live"),
+    sheet: $("sheet"), sheetForm: $("sheetForm"), sheetTitle: $("sheetTitle"), sheetWarn: $("sheetWarn"),
+    sheetGo: $("sheetGo"), sheetCancel: $("sheetCancel"), optCustom: $("optCustom"),
+    r90: $("r90"), r75: $("r75"), rOtro: $("rOtro"), customMax: $("customMax"), customErr: $("customErr"),
+  };
+
+  const state = { max: 90, drawn: [], voice: true, autoSec: 8 };
+  const auto = { on: false, timer: 0, anim: null, pausedByHide: false };
+  const motion = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
+  const synth = "speechSynthesis" in window && typeof window.SpeechSynthesisUtterance === "function" ? window.speechSynthesis : null;
+
+  let cells = [];
+  let builtFor = 0;
+  let lockUntil = 0;
+  let voice = null;
+  let voiceChecked = false;
+  let toastTimer = 0;
+  let sheetReturn = null;
+  let wake = null;
+  let wakePending = false;
+  let started = false;
+
+  // ---------- Estado guardado ----------
+  function sanitize(src) {
+    const out = { max: 90, drawn: [], voice: true, autoSec: 8 };
+    if (!src || typeof src !== "object") return out;
+    const max = Number(src.max);
+    if (Number.isInteger(max) && max >= 10 && max <= 100) out.max = max;
+    if (Array.isArray(src.drawn)) {
+      const seen = new Set();
+      for (const v of src.drawn) {
+        const n = Number(v);
+        if (Number.isInteger(n) && n >= 1 && n <= out.max && !seen.has(n)) { seen.add(n); out.drawn.push(n); }
+      }
+    }
+    if (typeof src.voice === "boolean") out.voice = src.voice;
+    if (SPEEDS.includes(Number(src.autoSec))) out.autoSec = Number(src.autoSec);
+    return out;
+  }
+  function readStored() {
+    try { const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* sin almacenamiento: el juego sigue en memoria */ }
+  }
+  function snapshot() {
+    return { max: state.max, drawn: state.drawn.slice(), voice: state.voice, autoSec: state.autoSec };
+  }
+
+  // ---------- Utilidades ----------
+  const letterFor = (n) => (state.max === 75 && n >= 1 ? LETTERS[Math.min(4, Math.floor((n - 1) / 15))] : "");
+  const labelFor = (n) => { const L = letterFor(n); return L ? L + " " + n : String(n); };
+  const current = () => state.drawn[state.drawn.length - 1] || 0;
+  function remaining() {
+    const out = new Set(state.drawn);
+    const r = [];
+    for (let n = 1; n <= state.max; n++) if (!out.has(n)) r.push(n);
+    return r;
+  }
+  // Entero uniforme en [0, n) sin sesgo de módulo
+  function randInt(n) {
+    const c = window.crypto;
+    if (c && typeof c.getRandomValues === "function") {
+      const lim = Math.floor(4294967296 / n) * n;
+      const buf = new Uint32Array(1);
+      do { c.getRandomValues(buf); } while (buf[0] >= lim);
+      return buf[0] % n;
+    }
+    return Math.floor(Math.random() * n);
+  }
+  function animate(node, frames, opts) {
+    if (!node || motion.matches || typeof node.animate !== "function") return null;
+    try { return node.animate(frames, opts); } catch (e) { return null; }
+  }
+
+  // ---------- Dibujo ----------
+  function render(fx) {
+    const count = state.drawn.length;
+    const left = state.max - count;
+    const cur = current();
+    const L = cur ? letterFor(cur) : "";
+    const digits = cur ? String(cur).length : 0;
+
+    el.rangeLabel.textContent = state.max === 75 ? "Bingo del 1 al 75 · B-I-N-G-O" : "Bingo del 1 al " + state.max;
+    el.voiceBtn.setAttribute("aria-pressed", String(state.voice));
+
+    el.ballNum.textContent = cur ? String(cur) : "¿?";
+    el.ballLetter.textContent = L;
+    el.ballLetter.hidden = !L;
+    if (L) el.ball.dataset.tone = L; else delete el.ball.dataset.tone;
+    el.ball.style.setProperty("--num", !cur ? ".22" : digits === 1 ? (L ? ".31" : ".36") : digits === 2 ? (L ? ".26" : ".3") : ".21");
+    el.ball.classList.toggle("is-idle", !cur);
+    el.ball.disabled = !cur || !synth;
+    el.ball.setAttribute("aria-label", cur ? "Último número: " + labelFor(cur) + (synth ? ". Tocar para escucharlo otra vez" : "") : "Todavía no salió ningún número");
+
+    el.statsIdle.hidden = count > 0;
+    el.statsLive.hidden = count === 0;
+    el.countN.textContent = String(count);
+    el.countMax.textContent = String(state.max);
+    el.leftTxt.textContent = left === 0 ? "No queda ninguno" : left === 1 ? "Queda 1" : "Quedan " + left;
+    el.repeatHint.hidden = !(synth && cur);
+    const custom = state.max !== 90 && state.max !== 75;
+    el.chips.forEach((b) => {
+      const m = b.dataset.max;
+      b.setAttribute("aria-pressed", String(m === "otro" ? custom : Number(m) === state.max));
+    });
+    el.chipOther.textContent = custom ? "1 al " + state.max : "Otro…";
+
+    renderRack(fx);
+    if (builtFor !== state.max) buildBoard();
+    updateBoard(cur, fx);
+    renderOrder();
+
+    el.undoBtn.disabled = count === 0;
+    el.autoBtn.disabled = left === 0;
+    el.autoBtn.setAttribute("aria-pressed", String(auto.on));
+
+    let mode = "draw", label = "Tirar número", sub = "o la barra espaciadora", kbd = true;
+    if (left === 0) { mode = "over"; label = "Juego nuevo"; sub = "Salieron los " + state.max + " números"; kbd = false; }
+    else if (auto.on) { mode = "auto"; label = "Pausar"; sub = "Automático, cada " + state.autoSec + " s"; kbd = false; }
+    el.drawBtn.dataset.mode = mode;
+    el.drawLabel.textContent = label;
+    el.drawSub.textContent = sub;
+    el.drawSub.classList.toggle("kbd-only", kbd);
+  }
+
+  function renderRack(fx) {
+    const prev = state.drawn.slice(Math.max(0, state.drawn.length - 1 - RACK), -1).reverse();
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < RACK; i++) {
+      const li = document.createElement("li");
+      const n = prev[i];
+      li.className = "slot";
+      if (n) {
+        li.classList.add("is-full");
+        const L = letterFor(n);
+        if (L) li.dataset.tone = L;
+        const mini = document.createElement("span");
+        mini.className = "mini";
+        mini.textContent = String(n);
+        li.appendChild(mini);
+        li.setAttribute("aria-label", labelFor(n));
+      } else {
+        li.setAttribute("aria-hidden", "true");
+      }
+      frag.appendChild(li);
+    }
+    el.rack.replaceChildren(frag);
+    if (!fx || !prev.length) return;
+    const slots = el.rack.children;
+    animate(slots[0], [{ transform: "scale(.5)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 320, easing: "cubic-bezier(.2,.8,.3,1)" });
+    for (let i = 1; i < prev.length; i++) {
+      animate(slots[i], [{ transform: "translateX(calc(-100% - 8px))" }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.8,.3,1)" });
+    }
+  }
+
+  function buildBoard() {
+    const frag = document.createDocumentFragment();
+    cells = [];
+    for (let n = 1; n <= state.max; n++) {
+      const li = document.createElement("li");
+      li.className = "cell";
+      li.textContent = String(n);
+      cells[n] = li;
+      frag.appendChild(li);
+    }
+    el.board.replaceChildren(frag);
+    el.board.setAttribute("aria-label", "Tablero del 1 al " + state.max);
+    builtFor = state.max;
+  }
+
+  function updateBoard(cur, fx) {
+    const out = new Set(state.drawn);
+    for (let n = 1; n <= state.max; n++) {
+      const c = cells[n];
+      const isOut = out.has(n);
+      c.classList.toggle("is-out", isOut);
+      c.classList.toggle("is-last", n === cur);
+      if (isOut) c.setAttribute("aria-label", n + ", salió"); else c.removeAttribute("aria-label");
+    }
+    if (fx && cur) animate(cells[cur], [{ transform: "scale(1.6)" }, { transform: "scale(1)" }], { duration: 480, easing: "cubic-bezier(.2,.9,.3,1.25)" });
+  }
+
+  function renderOrder() {
+    const d = state.drawn;
+    el.orderCount.textContent = d.length ? "· " + d.length : "";
+    el.orderEmpty.hidden = d.length > 0;
+    const frag = document.createDocumentFragment();
+    d.forEach((n, i) => {
+      const li = document.createElement("li");
+      li.textContent = labelFor(n);
+      if (i === d.length - 1) li.className = "is-last";
+      frag.appendChild(li);
+    });
+    el.order.replaceChildren(frag);
+  }
+
+  function rollIn() {
+    // La bolilla entra rodando desde la izquierda y se acomoda
+    animate(el.ball, [
+      { transform: "translateX(-40%) rotate(-230deg) scale(.8)", opacity: 0 },
+      { transform: "translateX(3%) rotate(8deg) scale(1.02)", opacity: 1, offset: 0.72 },
+      { transform: "none", opacity: 1 },
+    ], { duration: 560, easing: "cubic-bezier(.22,.8,.3,1)" });
+  }
+
+  // ---------- Voz ----------
+  function pickVoice() {
+    if (!synth) return;
+    let list = [];
+    try { list = synth.getVoices() || []; } catch (e) { list = []; }
+    if (!list.length) return;
+    voiceChecked = true;
+    const norm = (s) => String(s || "").replace("_", "-").toLowerCase();
+    const es = list.filter((v) => /^es(-|$)/.test(norm(v.lang)));
+    const pref = ["es-ar", "es-uy", "es-419", "es-us", "es-mx", "es-cl", "es-co", "es-es"];
+    voice = null;
+    for (const p of pref) {
+      const v = es.find((x) => norm(x.lang) === p);
+      if (v) { voice = v; break; }
+    }
+    if (!voice && es.length) voice = es[0];
+  }
+  // "47. Cuatro, siete." Los dígitos evitan confundir sesenta con setenta.
+  function phrase(n) {
+    const L = letterFor(n);
+    let s = (L ? L + ", " : "") + n + ".";
+    if (n >= 10) s += " " + String(n).split("").map((c) => DIGITS[Number(c)]).join(", ") + ".";
+    return s;
+  }
+  function say(text) {
+    if (!synth) return;
+    if (!voice) pickVoice();
+    let u;
+    try { u = new SpeechSynthesisUtterance(text); } catch (e) { return; }
+    u.lang = voice ? voice.lang : "es-AR";
+    if (voice) u.voice = voice;
+    u.rate = 0.95;
+    try {
+      if (synth.paused) synth.resume();
+      if (synth.speaking || synth.pending) {
+        synth.cancel();
+        setTimeout(() => { try { synth.speak(u); } catch (e) { /* sin voz */ } }, 90);
+      } else {
+        synth.speak(u);
+      }
+    } catch (e) { /* sin voz */ }
+  }
+  function hush() {
+    if (synth) { try { synth.cancel(); } catch (e) { /* nada */ } }
+  }
+
+  // ---------- Pantalla encendida ----------
+  async function keepAwake() {
+    if (wake || wakePending || !navigator.wakeLock || document.visibilityState !== "visible") return;
+    wakePending = true;
+    try {
+      wake = await navigator.wakeLock.request("screen");
+      wake.addEventListener("release", () => { wake = null; });
+    } catch (e) {
+      wake = null;
+    } finally {
+      wakePending = false;
+    }
+  }
+
+  // ---------- Acciones ----------
+  function draw() {
+    const t = performance.now();
+    if (t < lockUntil) return false;
+    const pool = remaining();
+    if (!pool.length) return false;
+    const n = pool[randInt(pool.length)];
+    state.drawn.push(n);
+    lockUntil = t + 450;
+    save();
+    hideToast();
+    if (pool.length === 1) stopAuto(true);
+    render(true);
+    rollIn();
+    el.live.textContent = "Salió el " + labelFor(n);
+    if (state.voice) say(phrase(n));
+    keepAwake();
+    if (auto.on) schedule();
+    return true;
+  }
+
+  function primary() {
+    if (state.drawn.length >= state.max) { openSheet(); return; }
+    if (auto.on) { stopAuto(); return; }
+    draw();
+  }
+
+  function startAuto() {
+    if (auto.on || state.drawn.length >= state.max) return;
+    auto.on = true;
+    if (!draw()) { schedule(); render(); }
+  }
+  function schedule() {
+    clearTimeout(auto.timer);
+    const ms = state.autoSec * 1000;
+    auto.timer = setTimeout(tick, ms);
+    if (auto.anim) { try { auto.anim.cancel(); } catch (e) { /* nada */ } }
+    auto.anim = null;
+    if (typeof el.drawProgress.animate === "function") {
+      try {
+        auto.anim = el.drawProgress.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: ms, easing: "linear", fill: "forwards" });
+      } catch (e) { auto.anim = null; }
+    }
+  }
+  function tick() {
+    if (!auto.on) return;
+    if (state.drawn.length >= state.max) { stopAuto(); return; }
+    if (!draw()) schedule();
+  }
+  function stopAuto(silent) {
+    const was = auto.on;
+    auto.on = false;
+    clearTimeout(auto.timer);
+    if (auto.anim) { try { auto.anim.cancel(); } catch (e) { /* nada */ } auto.anim = null; }
+    if (was && !silent) render();
+  }
+
+  function undo() {
+    if (!state.drawn.length) return;
+    stopAuto(true);
+    hush();
+    const n = state.drawn.pop();
+    const len = state.drawn.length;
+    save();
+    render();
+    toast("El " + labelFor(n) + " volvió al bolillero.", "Recuperar", () => {
+      if (state.drawn.length !== len || state.drawn.includes(n) || n > state.max) return;
+      state.drawn.push(n);
+      save();
+      render();
+    });
+  }
+
+  function newGame(max, hadGame) {
+    stopAuto(true);
+    hush();
+    state.max = max;
+    state.drawn = [];
+    save();
+    render();
+    toast(hadGame ? "Juego nuevo, del 1 al " + max + "." : "Cartones del 1 al " + max + ".");
+  }
+
+  // ---------- Aviso ----------
+  function toast(text, actionLabel, action) {
+    clearTimeout(toastTimer);
+    el.toastText.textContent = text;
+    if (actionLabel && action) {
+      el.toastAction.textContent = actionLabel;
+      el.toastAction.hidden = false;
+      el.toastAction.onclick = () => { hideToast(); action(); };
+    } else {
+      el.toastAction.hidden = true;
+      el.toastAction.onclick = null;
+    }
+    el.toast.classList.add("is-on");
+    toastTimer = setTimeout(hideToast, actionLabel ? 6000 : 3500);
+  }
+  function hideToast() {
+    clearTimeout(toastTimer);
+    if (!el.toast.classList.contains("is-on")) return;
+    el.toast.classList.remove("is-on");
+    el.toastAction.hidden = true;
+    el.toastAction.onclick = null;
+    toastTimer = setTimeout(() => { el.toastText.textContent = ""; }, 250);
+  }
+
+  // ---------- Hoja de juego nuevo ----------
+  function openSheet(opts) {
+    stopAuto();
+    sheetReturn = document.activeElement;
+    const c = state.drawn.length;
+    el.sheetTitle.textContent = c ? "¿Empezar otro juego?" : "Números de los cartones";
+    el.sheetWarn.hidden = !c;
+    el.sheetWarn.textContent = c === 1 ? "Se borra el número que salió." : "Se borran los " + c + " números que salieron.";
+    el.sheetGo.textContent = c ? "Empezar juego nuevo" : "Listo";
+    const custom = state.max !== 90 && state.max !== 75;
+    const wantCustom = Boolean(opts && opts.custom);
+    const pick = wantCustom || custom ? el.rOtro : state.max === 75 ? el.r75 : el.r90;
+    pick.checked = true;
+    el.customMax.value = custom ? String(state.max) : "";
+    el.customErr.hidden = true;
+    el.sheet.hidden = false;
+    document.body.classList.add("has-sheet");
+    const target = wantCustom ? el.customMax : pick;
+    requestAnimationFrame(() => { try { target.focus(); } catch (e) { /* nada */ } });
+  }
+  function closeSheet() {
+    if (el.sheet.hidden) return;
+    el.sheet.hidden = true;
+    document.body.classList.remove("has-sheet");
+    const r = sheetReturn;
+    sheetReturn = null;
+    if (r && typeof r.focus === "function" && document.contains(r)) {
+      try { r.focus({ preventScroll: true }); } catch (e) { /* nada */ }
+    }
+  }
+  function trapTab(e) {
+    const f = Array.from(el.sheet.querySelectorAll("button, input, select")).filter((x) => !x.disabled && !x.hidden && x.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  // ---------- Eventos ----------
+  el.drawBtn.addEventListener("click", primary);
+  el.undoBtn.addEventListener("click", undo);
+  el.autoBtn.addEventListener("click", () => { if (auto.on) stopAuto(); else startAuto(); });
+  el.autoSec.addEventListener("change", () => {
+    const v = Number(el.autoSec.value);
+    state.autoSec = SPEEDS.includes(v) ? v : 8;
+    save();
+    if (auto.on) schedule();
+    render();
+  });
+  el.newBtn.addEventListener("click", () => openSheet());
+  el.ball.addEventListener("click", () => {
+    const cur = current();
+    if (!cur) return;
+    say(phrase(cur));
+    animate(el.ball, [{ transform: "rotate(0)" }, { transform: "rotate(-9deg)" }, { transform: "rotate(6deg)" }, { transform: "rotate(0)" }], { duration: 420, easing: "ease-in-out" });
+  });
+  el.voiceBtn.addEventListener("click", () => {
+    state.voice = !state.voice;
+    save();
+    render();
+    if (!state.voice) { hush(); return; }
+    const cur = current();
+    say(cur ? phrase(cur) : "Voz activada.");
+    if (!voice) pickVoice();
+    if (voiceChecked && !voice) toast("Este dispositivo no tiene voz en español. Los números pueden sonar en otro idioma.");
+  });
+  el.chips.forEach((b) => b.addEventListener("click", () => {
+    if (state.drawn.length) return;
+    if (b.dataset.max === "otro") { openSheet({ custom: true }); return; }
+    state.max = Number(b.dataset.max);
+    save();
+    render();
+  }));
+
+  el.sheetCancel.addEventListener("click", closeSheet);
+  el.sheet.addEventListener("click", (e) => { if (e.target === el.sheet) closeSheet(); });
+  el.optCustom.addEventListener("click", (e) => {
+    if (e.target === el.customMax) return;
+    el.rOtro.checked = true;
+    if (e.target !== el.rOtro) el.customMax.focus();
+  });
+  el.customMax.addEventListener("focus", () => { el.rOtro.checked = true; });
+  el.customMax.addEventListener("input", () => { el.customErr.hidden = true; });
+  el.sheetForm.addEventListener("change", () => { el.customErr.hidden = true; });
+  el.sheetForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    let max = el.r75.checked ? 75 : 90;
+    if (el.rOtro.checked) {
+      const v = Number(el.customMax.value);
+      if (!Number.isInteger(v) || v < 10 || v > 100) {
+        el.customErr.hidden = false;
+        el.customMax.focus();
+        return;
+      }
+      max = v;
+    }
+    const hadGame = state.drawn.length > 0;
+    closeSheet();
+    newGame(max, hadGame);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (!el.sheet.hidden) {
+      if (e.key === "Escape") { e.preventDefault(); closeSheet(); }
+      else if (e.key === "Tab") trapTab(e);
+      return;
+    }
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const t = e.target;
+    if (t && t.closest && t.closest("button, a, input, select, textarea, [contenteditable]")) return;
+    if (e.key === " " || e.key === "Enter" || e.key === "Spacebar") {
+      e.preventDefault();
+      if (!e.repeat) primary();
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      if (auto.on) { stopAuto(); auto.pausedByHide = true; }
+      return;
+    }
+    if (auto.pausedByHide) {
+      auto.pausedByHide = false;
+      toast("El automático quedó en pausa.");
+    }
+    if (state.drawn.length && state.drawn.length < state.max) keepAwake();
+  });
+
+  // ---------- Arranque ----------
+  function boot(data) {
+    if (started) return;
+    started = true;
+    const src = data && Array.isArray(data.drawn) ? data : readStored();
+    Object.assign(state, sanitize(src));
+    el.autoSec.value = String(state.autoSec);
+    if (!synth) el.voiceBtn.hidden = true;
+    render();
+    if (synth) {
+      pickVoice();
+      try { synth.addEventListener("voiceschanged", pickVoice); } catch (e) { synth.onvoiceschanged = pickVoice; }
+    }
+  }
+
+  try { window.claude?.hot?.snapshot?.(snapshot); } catch (e) { /* nada */ }
+  const hot = window.claude?.hot;
+  if (hot && typeof hot.ready === "function") {
+    try { hot.ready(boot); } catch (e) { boot({}); }
+    setTimeout(() => boot({}), 1500);
+  } else {
+    boot(hot?.data ?? {});
+  }
+})();
+</script>
